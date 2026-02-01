@@ -2,10 +2,10 @@
 import polars as pl
 
 #reading data and ensuring that its csv
-df = pl.read_csv("F1_Data/lap_times.csv", separator=",")
-otherDataSet = pl.read_csv("F1_Data/races.csv", separator=",")
+#df = pl.read_csv("F1_Data/lap_times.csv", separator=",")
+#otherDataSet = pl.read_csv("F1_Data/races.csv", separator=",")
 
-print(df.head())
+#print(df.head())
 #iterate through rows
 
 
@@ -32,12 +32,12 @@ print(df.head())
 #combinedNew = df.join(otherDataSet, on=["raceId"])
 
 #Now new want to add the drivers name 
-WriteToDataSet = pl.read_csv("F1_Data/FinalDataFormat.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
+WriteToDataSet = pl.read_csv("F1_Data/TestFormat.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
 
 
 
 #We want to add the qualifying position to this dataset to show where the driver started from
-qualifyingDataSet = pl.read_csv("F1_Data/qualifying.csv", separator=",", null_values="\\N")
+qualifyingDataSet = pl.read_csv("F1_Data/qualifying.csv", separator=",", null_values="\\N",ignore_errors=True)
 WriteToDataSet = WriteToDataSet.join(qualifyingDataSet, on=["raceId", "driverId"], suffix="_i")
 
 
@@ -57,10 +57,10 @@ circuitData = pl.read_csv("F1_Data/circuits.csv", separator=",", null_values="\\
 WriteToDataSet = WriteToDataSet.join(circuitData, on =["circuitId"], suffix ="_k")
 
 
-WriteToDataSet.write_csv("F1_Data/FinalDataFormat.csv", separator=",")
+WriteToDataSet.write_csv("F1_Data/TestFormat.csv", separator=",")
 
 
 
 
 
-print(df)
+
