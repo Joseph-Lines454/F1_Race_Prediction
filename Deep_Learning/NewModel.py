@@ -68,17 +68,14 @@ class F1_Race_Prediction(nn.Module):
     super(F1_Race_Prediction, self).__init__()
     self.Input1 = nn.Linear(33, 120)
     self.relu = nn.ReLU()
-    self.Input2 = nn.Linear(64,20)
+    self.Input2 = nn.Linear(120,20)
 
   def forward(self,x):
     out = self.Input1(x)
     out = self.relu(out)
-    out - self.Input2(out)
+    out = self.Input2(out)
     return out
-#nn.CrossEntropyLoss is a good choice for the ML model
-input_dim = 784
-hidden_dim = 128
-output_dim = 10
+
 
 #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
 model = F1_Race_Prediction().to(device)
