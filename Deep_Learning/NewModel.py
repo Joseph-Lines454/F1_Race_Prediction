@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch import nn
 from sklearn.preprocessing import MinMaxScaler
-
+from sklearn.metrics import f1_score
 #We still need to do some pre-proccessing to the data - For qualifying data we need to use an arbitary value with out binary indicator flag (Reached Q2 ect)
 #Values also need to be encoded because some are in string formats which ML models do not like
 
@@ -14,15 +14,22 @@ GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" :
 #Exclude DNF's for now
 
 GetData = GetData.filter(pl.col('final_race_pos') != 0)
+GetData = GetData.with_columns(pl.when(pl.col("final_race_pos") <= 3).then(0).when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(1).when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(2).when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(3).alias('race_f'))
+#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(2).alias('race_f'))
+#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(3).alias('race_f'))
+#24 because 2012 had less drivers.
+#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(4).alias('race_f'))
+#we need to define 
+
 #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
 print(len(GetData))
 
 
 
-y = GetData.select(['final_race_pos']).to_numpy()
-x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date'])).to_numpy()
+y = GetData.select(['race_f']).to_numpy()
+x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f'])).to_numpy()
 
-#Have split data for training and testing
+#Have split data for training and testinggit 
 
 
 #temp1 = MinMaxScaler().fit(x)
@@ -111,22 +118,25 @@ device = torch.accelerator.current_accelerator().type
 
 
 
-
 #Trainning model for our data
 def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val):
   for epoch in range (1, epochs + 1):
+    model.train()
     optimizer.zero_grad()
     x_trained = model(x_train)
     loss = loss_fn(x_trained,y_train)
-
-
+    
     #Reset gradiant back to zero so gradient does not accumulate
     #Backpropagation
     loss.backward()
 
 
     #print(optimizer.grad.norm())
+    y_train.detach()
     optimizer.step()
+    #Essentily converts outputs to proabilities, then argmax gets the highest one and we get the F1 score.
+    f1_score_a = f1_score(torch.argmax(torch.softmax(x_trained, dim=1), dim=1), y_train, average="micro")
+    print(f1_score_a)
     if epoch % 50 == 0:
       print("Epoch " + str(epoch) + " Training Loss " + str(loss.item()))
 
@@ -144,12 +154,6 @@ def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val)
         print("Epoch " + str(epoch) + " Validation Loss " + str(loss.item()))
      
 
-
-
- 
-
-
-
 class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
@@ -159,7 +163,7 @@ class F1_Race_Prediction(nn.Module):
     self.relu2 = nn.Tanh()
     #self.dropout = nn.Dropout(0)
     # its because we are returning an output
-    self.Input4 = nn.Linear(136,24)
+    self.Input4 = nn.Linear(136,4)
     #Our 4 classes currently are outputed and given a probability via softmax - dim1 makes sure its applied across the class scores.
    
 
@@ -185,7 +189,7 @@ loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 #Training and Validating our model
-TrainModel(350,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
+TrainModel(200,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
 
 #Data needs to have some pre-processing done to it
 
