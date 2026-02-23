@@ -1,0 +1,51 @@
+{
+  "name": "react_front_end",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "WATCHPACK_POLLING=true react-scripts start",
+    "build": "react-scripts build",
+    "test": "mocha"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.30.2",
+    "react-scripts": "^5.0.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not ie <= 11",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-react": "^7.28.5",
+    "babel-loader": "^10.0.0",
+    "chai": "^6.2.2",
+    "mocha": "^11.7.5",
+    "msw": "^2.12.7",
+    "sinon": "^21.0.1",
+    "xhr-mock": "^2.5.1",
+    "xhr2": "^0.2.1"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app)."
+}

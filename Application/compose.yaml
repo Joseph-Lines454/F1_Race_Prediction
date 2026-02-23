@@ -1,0 +1,60 @@
+services:
+  
+  react-app:
+    build:
+      context: .
+      dockerfile: Front_End/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Front_End/react_front_end:/app
+      - /app/node_modules
+    environment:
+     
+      - NODE_ENV=development
+       
+    stdin_open: true
+    tty: true
+    container_name: Front_End_test
+    
+  web:
+    #image: node:24.12.0
+    #environment:
+    #  - MONGO_URL=mongodb://username:password@database:27017/users?authSource=admin
+    #  - MONGO_URL_BOOKS=mongodb://username:password@database:27017/Books?authSource=admin
+    #  - MONGO_URL_STAFF=mongodb://username:password@database:27017/staff?authSource=admin
+    #volumes:
+    #  - ./Node_Server/app:/usr/src/app
+    #depends_on:
+    #  - database
+    #working_dir: /usr/src/app
+    #ports:
+    #  - "82:82"
+    #command: sh -c "chmod +x run.sh && ./run.sh"
+    #container_name: Back_End_test
+    build:
+      context: .
+      dockerfile: F1_Server/Dockerfile
+    ports:
+      - "8001:8001"
+  redis:
+    image: "redis:alpine"
+       
+    stdin_open: true
+    tty: true
+    container_name: F1_Server
+
+
+
+  database:
+    image: mongo:7.0.3
+    ports:
+      - 83:27017
+    volumes:
+      - ./dbdata:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_URL: mongodb://username:password@database:27017/users?authSource=admin
+  
+    

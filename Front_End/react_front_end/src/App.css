@@ -1,0 +1,88 @@
+#buttonstyle {
+  width: 100%;
+  height: 2.5em;
+  text-decoration: none;
+}
+
+
+.FormAlign {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+ 
+
+}
+
+.LinkStyle
+{
+  text-decoration: none;
+  color: black;
+}
+
+.textForm {
+  text-align: center;
+}
+
+.NavigationBar{
+ background-color: red;
+ display: flex;
+ justify-content: center;
+}
+.navigationLinks {
+  display: flex;
+  align-items: center;
+  padding-left: 5%;
+   text-decoration: none;
+}
+ul
+{
+  list-style-type: none;
+  gap: 10%;
+  width: 30%;
+  
+}
+.individualElem {
+  background-color: chartreuse;
+  padding: 14px 25px;
+  text-align: center;
+ 
+}
+
+
+.individualElem:hover {
+  background-color: rgb(190, 61, 38);
+  padding: 14px 25px;
+  text-align: center;
+}
+
+
+.Bookscontainer {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+   justify-content: center;
+}
+
+.Books  {
+  
+  background-color: #f1f1f1;
+  width: 25%;
+  margin: 10px;
+  padding: 10px;
+  text-align: center;  
+  font-size: 30px;
+}
+.Books button {
+  width: 50%;
+  height: 5%;
+}
+
+.buttonPass {
+  width: 10%;
+  height: 20%;
+}
+
+.image {
+  width: 50%;
+}
