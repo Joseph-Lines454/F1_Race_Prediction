@@ -35,8 +35,13 @@ services:
     build:
       context: .
       dockerfile: F1_Server/Dockerfile
+    volumes:
+        - ./F1_Server:/usr/app/src
+    working_dir:  /usr/app/src
     ports:
       - "8001:8001"
+
+    command: python3 server.py
   redis:
     image: "redis:alpine"
        

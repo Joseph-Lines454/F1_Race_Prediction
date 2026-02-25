@@ -6,6 +6,14 @@ import time
 import requests
 import json
 import http.client
+from pymongo import MongoClient
+#We want to put all of this datawithin the mongoDB database so we dont have to make to many API calls
+
+client = MongoClient()
+
+client = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
+newdatabase = client["Drivers"]
+newcollection = newdatabase["Driver_Lap_Times"]
 
 
 response = http.client.HTTPSConnection("hyprace-api.p.rapidapi.com")
@@ -17,6 +25,8 @@ headers = {
 
 HOST = "0.0.0.0"
 PORT = 8001
+
+#Get all current drivers from a list and find them in the database, if they are not in the database, then we can get all of the laptimes related to that driver
 
 class NeuralHTTP(BaseHTTPRequestHandler):
 
@@ -34,7 +44,11 @@ class NeuralHTTP(BaseHTTPRequestHandler):
 
     
     if self.path == "/F1_Statistics":
-      
+      mydict = { "name": "John", "address": "Highway 27" }
+
+      x = newcollection.insert_one(mydict)
+      data = newcollection.find_one()
+      print(data)
       self.F1_Statistics()
       
   
@@ -86,7 +100,6 @@ class NeuralHTTP(BaseHTTPRequestHandler):
     self.send_response(200)
     self.do_OPTIONS()
     return self.wfile.write(json.dumps(sendJSON).encode('utf-8'))
-    #return self.wfile.write("AYYYYYYYYYYYYY")
 
   def do_POST(self):
     
@@ -104,7 +117,6 @@ print("Server is now working!")
 
 server = HTTPServer((HOST,PORT), NeuralHTTP)
 server.serve_forever()
-#server.server_close()
-#print("Server Stopped")
+
 
 print("Hello!!!")
