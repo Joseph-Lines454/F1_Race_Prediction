@@ -37,68 +37,80 @@ let Drivers = undefined;
 
 
 
+const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
+
+websocket.addEventListener("open", event => {
+  websocket.send("Connection established")
+});
+
+websocket.addEventListener("message", event=> {
+  console.log("Message Recived From Server: ", event.data)
+});
+
+
+
 function F1_DriverStandings() {
-    
- return (
-  (Drivers != undefined) && (
-     <div>
-      <h1>Driver Standings</h1>
-      <table>
-        <tbody>
-        <tr>
-          <th>Driver Name</th>
-          <th>Driver Position</th>
-          <th>Driver Points</th>
-        </tr>
-        
-          {Drivers.map((Drivers, index) => (
-            
-              <tr key = {index}>
-                
-                <th>{Drivers.name}</th>
-                <th>{Drivers.position}</th>
-                <th>{Drivers.points}</th>
-                
-              </tr>
-           
-          ))}
-        
-
-      </tbody>
-      </table>
-
-      <h1>Team Standings</h1>
-      <table>
-        <tbody>
-        <tr>
-          <th>Team Name</th>
-          <th>Team Points</th>
+  //websocket.send("HelloooooAhhhhh")
+  return (
+    (Drivers != undefined) && (
+      <div>
+        <h1>Driver Standings</h1>
+        <table>
+          <tbody>
+          <tr>
+            <th>Driver Name</th>
+            <th>Driver Position</th>
+            <th>Driver Points</th>
+          </tr>
           
-        </tr>
-        
-          {Teams.map((Teams, index) => (
+            {Drivers.map((Drivers, index) => (
+              
+                <tr key = {index}>
+                  
+                  <th>{Drivers.name}</th>
+                  <th>{Drivers.position}</th>
+                  <th>{Drivers.points}</th>
+                  
+                </tr>
             
-              <tr key = {index}>
-                
-                <th>{Teams.name}</th>
-                <th>{Teams.team_points}</th>
-               
-                
-              </tr>
-           
-          ))}
-        
+            ))}
+          
 
-      </tbody>
-      </table>
-      
-      
-      
-    </div>
-  )
+        </tbody>
+        </table>
+
+        <h1>Team Standings</h1>
+        <table>
+          <tbody>
+          <tr>
+            <th>Team Name</th>
+            <th>Team Points</th>
+            
+          </tr>
+          
+            {Teams.map((Teams, index) => (
+              
+                <tr key = {index}>
+                  
+                  <th>{Teams.name}</th>
+                  <th>{Teams.team_points}</th>
+                
+                  
+                </tr>
+            
+            ))}
+          
+
+        </tbody>
+        </table>
+        
+        
+        
+      </div>
+    )
+    
   
- 
-  )
+    )
  
 }
 
