@@ -1,3 +1,14 @@
+db.Race_Schedule.find()
+db.Race_Schedule.deleteMany({})
+db.Race_Schedule.deleteMany()
+show collections;
+db.collection.deleteMany()
+db.Race_Schedule.find()
+show collections;
+use Drivers;
+show collections;
+use Schedule
+show databases;
 db.Driver_Lap_Times.find();
 Driver_Lap_Times.find()
 Driver_Lap_Times.find_one()

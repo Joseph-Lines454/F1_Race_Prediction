@@ -34,3 +34,54 @@ ul
 h1 {
 justify-content: center;
 }
+
+.ButtonDis {
+  background-color: #04AA6D;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
+
+.dropdown {
+  
+  display: inline-block;
+}
+
+.dropdownSeasons {
+  display: none;
+  min-width: 120px;
+  max-height: 100px;
+  overflow: scroll;
+}
+
+.dropdownSeasons label {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+
+
+}
+
+.dropdownSeasons label:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdownSeasons {display: block;}
+
+.FindSeason {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  
+}
+
+.SearchBar {
+  display: flex;
+  justify-content: center;
+  padding-left: 20px;
+  height:  40px;
+}
+
+.Bar {
+  padding: 5px;
+}

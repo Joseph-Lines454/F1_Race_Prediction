@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import './App.css'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+//This function gets the year that the usser selected, then we query the API for that year and return a new result 
+let Seasons = null;
 
 
 let Response = undefined;
@@ -11,13 +13,14 @@ let Teams = undefined;
 let Drivers = undefined;
  var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
+    
     if (this.readyState == 4 && this.status == 200)
     {
       console.log(this.responseText)
       Response = this.responseText
       Response = JSON.parse(Response)
+       Drivers = Response[0]
       Teams = Response[1]
-      Drivers = Response[0]
      
       
       
@@ -27,25 +30,34 @@ let Drivers = undefined;
       console.log(Teams)
       ValidPrint = true;
     }
+   
     
 
 
   }
   
-  xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-  xhttp.send();
+  //xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
+  //xhttp.send();
 
 
 
-const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
 
-websocket.addEventListener("open", event => {
-  websocket.send("Connection established")
-});
+//const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
 
-websocket.addEventListener("message", event=> {
-  console.log("Message Recived From Server: ", event.data)
-});
+//websocket.addEventListener("open", event => {
+//  websocket.send("Connection established")
+//});
+
+//websocket.addEventListener("message", event=> {
+//  console.log("Message Recived From Server: ", event.data)
+//});
+
+
+//We can have a historical Data section
+//2026 infromation
+//Live timings
+
+//We can make charts showing the changes in the championship
 
 
 
@@ -88,7 +100,7 @@ function F1_DriverStandings() {
             
           </tr>
           
-            {Teams.map((Teams, index) => (
+            {Teams != undefined && Teams.map((Teams, index) => (
               
                 <tr key = {index}>
                   
@@ -103,9 +115,6 @@ function F1_DriverStandings() {
 
         </tbody>
         </table>
-        
-        
-        
       </div>
     )
     
