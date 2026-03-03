@@ -1,3 +1,40 @@
+it
+db.Races.find()
+db.Races.deleteMany({})
+i
+it
+i
+it
+db.Races.find()
+db.Races.deleteMany({})
+db.Races.find()
+db.Races.deleteMany({})
+db.Races.find()
+db.Races.deleteMany({})
+it
+db.Races.find()
+db.Races.findMany()
+db.Races.deleteMany({})
+db.Races.deleteMay({})
+db.Drivers.deleteMany({})
+db.Drivers.deleteMany()
+it
+db.Races.find()
+show collections
+use Drivers
+db.Races.findOne()
+db.Races.find()
+db.Driver_Lap_Times.find();
+db.Races.find();
+use Races
+show collections
+db.Race_Schedule.find();
+db.Race_Schedule.find{})
+db.Race_Schedule.find()
+use Race_Schedule
+show collections
+use Drivers
+show databases
 db.Race_Schedule.find()
 db.Race_Schedule.deleteMany({})
 db.Race_Schedule.deleteMany()

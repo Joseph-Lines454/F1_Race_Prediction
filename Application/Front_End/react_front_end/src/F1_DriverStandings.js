@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 let Seasons = null;
 
 
+//Might need to use useeffect here...
 let Response = undefined;
 
 let ValidPrint = false;
@@ -13,7 +14,7 @@ let Teams = undefined;
 let Drivers = undefined;
  var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
-    
+
     if (this.readyState == 4 && this.status == 200)
     {
       console.log(this.responseText)
@@ -27,17 +28,19 @@ let Drivers = undefined;
       Drivers.sort(function(a,b){
         return b.points - a.points
       })
-      console.log(Teams)
+      console.log(Drivers)
       ValidPrint = true;
+
+     
     }
-   
+    
     
 
 
   }
   
-  //xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-  //xhttp.send();
+  xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
+  xhttp.send();
 
 
 

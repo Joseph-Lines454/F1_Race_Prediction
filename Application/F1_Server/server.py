@@ -15,6 +15,8 @@ from pydantic import BaseModel
 
 #we want to make a check that if each year has not been added 
 
+
+
 client = MongoClient()
 
 #Get the current year
@@ -23,7 +25,45 @@ Year = date.today().year
 client = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
 newdatabase = client["Drivers"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
-TimingsCollection = newdatabase['Race_Schedule']
+Races = newdatabase['Races']
+
+#This is the function which got all of the races and stored them in the database
+async def functionStoreRaces():
+  page = 1
+  while True:
+    print("page")
+    response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/grands-prix?pageNumber={page}",headers=headers)
+    data = response
+    newData = data.json()
+    #print(newData)
+    print(newData)
+    #Loop through all items
+   
+    
+    mylist = []
+
+    for item in newData["items"]:
+      
+      items = {"id" : item["id"],"round" : item["round"],"name" : item["name"],"season" : item["season"]["year"]}
+      mylist.append(items)
+      #print(items)
+    #print(newData["hasNext"])
+    #break
+   
+    x = Races.insert_many(mylist)
+    
+    
+    if newData["hasNext"] != True:
+      break
+
+    page = page + 1
+   
+    
+    
+    
+
+   
+
 
 app = FastAPI()
 
@@ -72,7 +112,7 @@ headers = {
 
 
 class SeasonYearData(BaseModel):
-  id: str
+  year: int
 
 
 
@@ -85,10 +125,12 @@ def root():
  
 
  
-  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/seasons/3d24e122-216e-4328-abcf-0af0c5f3fb9e/teams", headers=headers)
+  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/seasons/3d24e122-216e-4328-abcf-0af0c5f3fb9e/teams?pageSize=20", headers=headers)
+
+
   data = response
   newData = data.json()
-
+  #print(newData)
 
   count = 0
   data = []
@@ -99,14 +141,17 @@ def root():
         "team_position": i["constructors"][0]["standing"]["position"],
         "team_points": i["constructors"][0]["standing"]["points"]
       })
-  for j in i["drivers"]:
-        if j["drivingLevel"] == "GrandPrix":
-          data.append({
-            "name" : j["firstName"] + " " + j["lastName"],
-            "id" : j["id"],
-            "position": j["standing"]["position"],
-            "points": j["standing"]["points"]
-          })
+    for j in i["drivers"]:
+          if j["drivingLevel"] == "GrandPrix":
+            data.append({
+              "name" : j["firstName"] + " " + j["lastName"],
+              "id" : j["id"],
+              "position": j["standing"]["position"],
+              "points": j["standing"]["points"]
+            }
+            )
+            print(j["firstName"])
+
           
     
   sendJSON = [data,teams]
@@ -117,22 +162,21 @@ def root():
 
 #Championship Might have to do this with sportsradar
 
-@app.get("/Historical")
-def root():
-  StartYear = 1950
-  #Get the current year
-  Year = date.today().year
-  #Fill an array with the current Years and Return Them - Save on API requests
-  DatesList = list(range(StartYear,Year))
-
-
-
-  #response = requests.get("https://hyprace-api.p.rapidapi.com/v2/seasons", headers=headers)
-  #data = response
-  #newData = data.json()
-  #print(newData)
+@app.post("/Historical")
+async def root(Data: SeasonYearData):
   
-  return DatesList
+  #Get the data based on the year
+
+  print(Data.year)
+
+  x = list(Races.find({'season': Data.year}))
+  
+  #x = list(x)
+  for races in x:
+    races["_id"] = str(races["_id"])
+    
+  
+  return x
 
 
 #Constructors Standings Implemented
