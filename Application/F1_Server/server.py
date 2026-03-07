@@ -91,12 +91,6 @@ mqtt_username = "joelines194@gmail.com"
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.username_pw_set(username=mqtt_username, password=access_token)
 client.tls_set(tls_version=ssl.PROTOCOL_TLS)
-#client.on_connect = on_connect
-#client.on_message = on_message
-
-
-
-
 
 client.on_connect = on_connect
 client.on_message = on_message
@@ -190,8 +184,7 @@ async def root():
               "points": j["standing"]["points"]
             }
             )
-            print(j["firstName"])
-
+           
           
     
   sendJSON = [data,teams]

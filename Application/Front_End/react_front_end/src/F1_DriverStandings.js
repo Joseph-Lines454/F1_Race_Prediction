@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import './App.css'
 import { useEffect, useState } from 'react';
-
+import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend } from 'recharts';
+import { RechartsDevtools } from '@recharts/devtools';
 //This function gets the year that the usser selected, then we query the API for that year and return a new result 
 let Seasons = null;
 
@@ -63,62 +64,89 @@ let Drivers = undefined;
 //We can make charts showing the changes in the championship
 
 
-
 function F1_DriverStandings() {
   //websocket.send("HelloooooAhhhhh")
   return (
     (Drivers != undefined) && (
       <div>
-        <h1>Driver Standings</h1>
-        <table>
-          <tbody>
-          <tr>
-            <th>Driver Name</th>
-            <th>Driver Position</th>
-            <th>Driver Points</th>
-          </tr>
-          
-            {Drivers.map((Drivers, index) => (
+        <div>
+          <div>
+            <h1>Driver Standings</h1>
+            <table>
+              <tbody>
+              <tr>
+                <th>Driver Name</th>
+                <th>Driver Position</th>
+                <th>Driver Points</th>
+              </tr>
               
-                <tr key = {index}>
+                {Drivers.map((Drivers, index) => (
                   
-                  <th>{Drivers.name}</th>
-                  <th>{Drivers.position}</th>
-                  <th>{Drivers.points}</th>
-                  
-                </tr>
-            
-            ))}
-          
-
-        </tbody>
-        </table>
-
-        <h1>Team Standings</h1>
-        <table>
-          <tbody>
-          <tr>
-            <th>Team Name</th>
-            <th>Team Points</th>
-            
-          </tr>
-          
-            {Teams != undefined && Teams.map((Teams, index) => (
-              
-                <tr key = {index}>
-                  
-                  <th>{Teams.name}</th>
-                  <th>{Teams.team_points}</th>
+                    <tr key = {index}>
+                      
+                      <th>{Drivers.name}</th>
+                      <th>{Drivers.position}</th>
+                      <th>{Drivers.points}</th>
+                      
+                    </tr>
                 
-                  
-                </tr>
-            
-            ))}
-          
+                ))}
+              
 
-        </tbody>
-        </table>
+                </tbody>
+              </table>
+            </div>
+            <div>
+               {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
+              <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Drivers}>
+                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
+             
+                <Bar dataKey = "points" fill="#8884d8" />
+              
+                <RechartsDevtools />
+              </BarChart>
+            </div>
+          </div>
+        <div>
+          <div>
+        
+            <h1>Team Standings</h1>
+            <table>
+              <tbody>
+              <tr>
+                <th>Team Name</th>
+                <th>Team Points</th>
+                
+              </tr>
+              
+                {Teams != undefined && Teams.map((Teams, index) => (
+                  
+                    <tr key = {index}>
+                      
+                      <th>{Teams.name}</th>
+                      <th>{Teams.team_points}</th>
+                    
+                      
+                    </tr>
+                
+                ))}
+              
+              </tbody>
+            </table>
+          </div>
+          <div>
+             <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams}>
+              <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
+             
+              <Bar dataKey = "team_points" fill="#8884d8" />
+              
+              <RechartsDevtools />
+            </BarChart>
+          </div>
+        </div>
+      
       </div>
+      
     )
     
   

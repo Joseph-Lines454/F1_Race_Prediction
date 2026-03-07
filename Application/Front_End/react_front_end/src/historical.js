@@ -59,10 +59,6 @@ function Historical() {
       //Seasons = JSON.parse(this.responseText)
       dataDisplaySet(JSON.parse(this.responseText))
     }
-    
-   
-
-
     }
   
     xhttp.open("POST","http://127.0.0.1:8001/Historical",true)
