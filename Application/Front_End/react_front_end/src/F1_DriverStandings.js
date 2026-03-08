@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import './App.css'
 import { useEffect, useState } from 'react';
-import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend } from 'recharts';
-import { RechartsDevtools } from '@recharts/devtools';
+import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend,Tooltip  } from 'recharts';
+import { RechartsDevtools} from '@recharts/devtools';
 //This function gets the year that the usser selected, then we query the API for that year and return a new result 
 let Seasons = null;
 
@@ -13,38 +13,88 @@ let Response = undefined;
 let ValidPrint = false;
 let Teams = undefined;
 let Drivers = undefined;
- var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
+let Drivers_Over_Season = undefined;
+let Teams_Over_Season = undefined;
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
 
-    if (this.readyState == 4 && this.status == 200)
-    {
-      console.log(this.responseText)
-      Response = this.responseText
-      Response = JSON.parse(Response)
-       Drivers = Response[0]
-      Teams = Response[1]
+  if (this.readyState == 4 && this.status == 200)
+  {
+   
+    Response = this.responseText
+    Response = JSON.parse(Response)
+    Drivers = Response[0]
+    Teams = Response[1]
      
-      
-      
-      Drivers.sort(function(a,b){
-        return b.points - a.points
-      })
-      console.log(Drivers)
-      ValidPrint = true;
-
-     
-    }
-    
-    
-
+    Drivers.sort(function(a,b){
+      return b.points - a.points
+    })
+   
+    ValidPrint = true;
 
   }
+    
+    
+
+
+}
   
-  xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-  xhttp.send();
+xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
+xhttp.send();
+
+var GetSeasonData = new XMLHttpRequest();
+GetSeasonData.onreadystatechange = function()
+{
+  if (this.readyState == 4 && this.status == 200)
+  {
+    
+    Response = JSON.parse(this.responseText)
+    Drivers_Over_Season = Response[0]
+    //We need to change the shape of the data, so we need to concatinate it all together
+    console.log(Drivers_Over_Season)
+    SortDataForGraph(Drivers_Over_Season)
+  }
+}
+GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
+GetSeasonData.send();
+
+function SortDataForGraph(Data)
+{
+  let newRows = {}
+  
+  //we need to sort the data so its in individual rows for each date
+  //Get all of the dates then just add all values that match that date
+  Data.forEach(({timestamp}) => {
+    if (!newRows[timestamp])
+    {
+      newRows[timestamp] = {timestamp}
+     
+    }
+  });
+  
+  
+  
+  let DataLen = newRows.length
 
 
 
+
+  for (let i = 0; i < DataLen; i++) {
+    console.log(newRows[i])
+  }
+  /*
+  newRows = Object.values(newRows)
+  let DataLen = newRows.length
+
+
+
+
+  for (let i = 0; i < DataLen; i++) {
+    console.log(newRows[i])
+  }
+  */
+
+}
 
 //const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
 
@@ -67,7 +117,7 @@ let Drivers = undefined;
 function F1_DriverStandings() {
   //websocket.send("HelloooooAhhhhh")
   return (
-    (Drivers != undefined) && (
+    ((Drivers != undefined) && (Response != undefined)) && (
       <div>
         <div>
           <div>
@@ -106,7 +156,31 @@ function F1_DriverStandings() {
                 <RechartsDevtools />
               </BarChart>
             </div>
+            <div>
+              <LineChart
+                style={{ width: '100%', maxWidth: '700px', height: '100%', maxHeight: '70vh', aspectRatio: 1.618 }}
+                responsive
+                data={Drivers_Over_Season}
+                margin={{
+                  top: 5,
+                  right: 0,
+                  left: 0,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                
+                <XAxis dataKey="timestamp"/>
+                <Legend />
+                <Tooltip />
+                <Line dataKey="George Russell" dot={{r:6}}/>
+                
+              <RechartsDevtools />
+            </LineChart>
+            </div>
+            
           </div>
+          
         <div>
           <div>
         
