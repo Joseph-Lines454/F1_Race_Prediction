@@ -1,3 +1,16 @@
+db.Race_Schedule.find()
+show collections
+use Drivers
+db.Teams_Standings.insertOne({name: "mercedes", team_position: 2, points: 60, team_position: 1, timestamp: "26-03-09"})
+db.Teams_Standings.deleteOne({name: "mercedes", team_position: 2, points: 43, team_position: 1, timestamp: "26-03-08"})
+db.Teams_Standings.find()
+db.Teams_Standings.insertOne({name: "mercedes", team_position: 2, points: 43, team_position: 1, timestamp: "26-03-08"})
+db.Teams_Standings.find()
+db.Teams_Standings.updateMany({},{$rename: {"team_points":"points"}},false,true)
+db.Teams_Standings.update({},{$rename: {"team_points":"points"}},false,true)
+show collections
+use Drivers
+show databases;
 )
 db.Drivers_Standings.insertOne({name: "George Russell", id: "5d86760d-5842-4ca1-214d-08d9161fe7c5", points: 18, position: 2, timestamp: "26-03-09"}
 db.Teams_Standings.find()

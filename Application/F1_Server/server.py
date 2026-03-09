@@ -104,7 +104,7 @@ def GetStandings(newData):
     teams.append({
         "name": i["name"],
         "team_position": i["constructors"][0]["standing"]["position"],
-        "team_points": i["constructors"][0]["standing"]["points"]
+        "points": i["constructors"][0]["standing"]["points"]
       })
     for j in i["drivers"]:
           if j["drivingLevel"] == "GrandPrix":
@@ -172,10 +172,13 @@ async def CurrentSeason():
   newData = data.json()
   return newData["items"][0]["id"]
 
-async def GetLiveData():
-  response = requests.get("https://api.openf1.org/v1/position?meeting_key=1217&position<=3", headers=paramsLive_Telem)
-  
+async def CheckAPIStrings():
+  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c0c47b04-21d3-4765-c8fa-08d94ab130d2/races/3a9846a9-0d83-4087-8ba4-5fc8cd979e1f/results", headers=headers)
 
+
+  
+  data  = response.json()
+  print(data)
 
   
   #print(response.json())
@@ -199,7 +202,7 @@ async def root():
   arrayDriverNames = []
   ConstructorData = []
   season = await CurrentSeason()
-  await GetLiveData()
+  await CheckAPIStrings()
   response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/seasons/{season}/teams?pageSize=25", headers=headers)
   #await UpdateStandings()
   data = response

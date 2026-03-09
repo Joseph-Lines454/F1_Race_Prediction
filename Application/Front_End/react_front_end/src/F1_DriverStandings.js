@@ -50,9 +50,12 @@ GetSeasonData.onreadystatechange = function()
     
     Response = JSON.parse(this.responseText)
     Drivers_Over_Season = Response[0]
+    Teams_Over_Season = Response[1]
+    console.log(Teams_Over_Season)
     //We need to change the shape of the data, so we need to concatinate it all together
-    console.log(Drivers_Over_Season)
-    SortDataForGraph(Drivers_Over_Season)
+    Drivers_Over_Season = SortDataForGraph(Drivers_Over_Season)
+    Teams_Over_Season = SortDataForGraph(Teams_Over_Season)
+    
   }
 }
 GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
@@ -72,28 +75,22 @@ function SortDataForGraph(Data)
     }
   });
   
-  
-  
-  let DataLen = newRows.length
-
-
-
-
-  for (let i = 0; i < DataLen; i++) {
-    console.log(newRows[i])
-  }
-  /*
   newRows = Object.values(newRows)
   let DataLen = newRows.length
+  console.log(newRows.length)
 
-
-
-
+  /*Nested for loop to find all timestamps*/
   for (let i = 0; i < DataLen; i++) {
-    console.log(newRows[i])
+    for (let j = 0; j < Data.length; j++)
+    {
+      if (Data[j]["timestamp"] == newRows[i]["timestamp"])
+      {
+        newRows[i][Data[j].name] = Number(Data[j].points)
+      }
+    }
   }
-  */
-
+ 
+  return newRows
 }
 
 //const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
@@ -113,11 +110,16 @@ function SortDataForGraph(Data)
 
 //We can make charts showing the changes in the championship
 
-
+let driverNames = undefined
 function F1_DriverStandings() {
   //websocket.send("HelloooooAhhhhh")
+  if (Response != undefined)
+  {
+    driverNames = Object.keys(Drivers_Over_Season[0]).filter(k => k !== "timestamp");
+  }
+  
   return (
-    ((Drivers != undefined) && (Response != undefined)) && (
+    ((Drivers != undefined) && (Response != undefined) && (driverNames != undefined)) && (
       <div>
         <div>
           <div>
@@ -147,6 +149,7 @@ function F1_DriverStandings() {
               </table>
             </div>
             <div>
+              
                {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
               <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Drivers}>
                 <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
@@ -158,7 +161,7 @@ function F1_DriverStandings() {
             </div>
             <div>
               <LineChart
-                style={{ width: '100%', maxWidth: '700px', height: '100%', maxHeight: '70vh', aspectRatio: 1.618 }}
+                style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
                 responsive
                 data={Drivers_Over_Season}
                 margin={{
@@ -170,10 +173,18 @@ function F1_DriverStandings() {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
                 
-                <XAxis dataKey="timestamp"/>
-                <Legend />
+                <XAxis dataKey="timestamp" angle={-45}/>
+              
                 <Tooltip />
-                <Line dataKey="George Russell" dot={{r:6}}/>
+                 
+                {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                  <Line
+                    key={driver}
+                    type="monotone"
+                    dataKey={driver}
+                    
+                  />
+                ))}
                 
               <RechartsDevtools />
             </LineChart>
@@ -198,7 +209,7 @@ function F1_DriverStandings() {
                     <tr key = {index}>
                       
                       <th>{Teams.name}</th>
-                      <th>{Teams.team_points}</th>
+                      <th>{Teams.points}</th>
                     
                       
                     </tr>
@@ -212,10 +223,40 @@ function F1_DriverStandings() {
              <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams}>
               <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
              
-              <Bar dataKey = "team_points" fill="#8884d8" />
+              <Bar dataKey = "points" fill="#8884d8" />
               
               <RechartsDevtools />
             </BarChart>
+          </div>
+          <div>
+            <LineChart
+                style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
+                responsive
+                data={Teams_Over_Season}
+                margin={{
+                  top: 5,
+                  right: 0,
+                  left: 0,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                
+                <XAxis dataKey="timestamp" angle={-45}/>
+              
+                <Tooltip />
+                 
+                {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                  <Line
+                    key={driver}
+                    type="monotone"
+                    dataKey={driver}
+                    
+                  />
+                ))}
+                
+              <RechartsDevtools />
+            </LineChart>
           </div>
         </div>
       
