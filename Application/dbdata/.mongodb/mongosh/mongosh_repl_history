@@ -1,3 +1,66 @@
+it
+db.Team_Names.find()
+show collections
+use Drivers;
+show databases;
+it
+db.Team_Names.find()
+db.Team_Names.deleteMany({})
+db.Team_Names.deleteMany()
+it
+db.Team_Names.find()
+show collections
+db.Driver_Names.find({firstName: 'Lewis'})
+it
+db.Driver_Names.find()
+db.Driver_Names.deleteMany({})
+db.Driver_Names.find()
+show collections;
+show collections
+it
+db.Races.find()
+db.Races.deleteMany({})
+show collections
+it
+db.Races.find()
+db.Races.find({season: 2025})
+db.Races.deleteMany({})
+db.Races.deleteMany()
+show collections
+it
+db.Races.find({season: 2025})
+db.Race_Schedule.findOne({season: "2025"})
+db.Race_Schedule.findOne({season: 2025})
+db.Race_Schedule.find({season: 2025})
+db.Race_Schedule.findMany({season: 2025})
+db.Race_Schedule.findMany({})
+db.Race_Schedule.findMany({})]
+db.Race_Schedule.findMany()
+it
+db.Race_Schedule.find({},{year:2025})
+db.Race_Schedule.findOne({},{year:2025})
+it
+i
+it
+db.Race_Schedule.find()
+db.Race_Schedule.findOne({year: 2025})
+db.Race_Schedule.find({year: 2025})
+db.Race_Schedule.dropMany({})
+db.Race_Schedule.dropMany()
+it
+db.Race_Schedule.find()
+use Drivers
+use Darivers
+use Race_Schedule
+show collections;
+show colllections;
+show colllections
+use Drivers
+show databases;
+db.Races.find()
+show collections
+use Drivers
+show databases;
 db.Race_Schedule.find()
 show collections
 use Drivers

@@ -67,8 +67,8 @@ Races = newdatabase['Races']
 #we need to store the standings after each race in the database
 Drivers_Standings = newdatabase["Drivers_Standings"]
 Teams_Standings = newdatabase["Teams_Standings"]
-
-
+Driver_Names = newdatabase["Driver_Names"]
+Team_Names = newdatabase["Team_Names"]
 def on_connect(client, userdata, flags, rc, properties = None):
   print("we are here!!")
   if rc == 0:
@@ -146,24 +146,118 @@ async def functionStoreRaces():
     response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/grands-prix?pageNumber={page}",headers=headers)
     data = response
     newData = data.json()
-    #print(newData)
+    print(newData)
     #Loop through all items
     mylist = []
     for item in newData["items"]:
-      items = {"id" : item["id"],"round" : item["round"],"name" : item["name"],"season" : item["season"]["year"]}
+      items = {"Raceid" : item["id"],"round" : item["round"],"name" : item["name"],"season" : item["season"]["year"], "Eventid": item["schedule"][0]["id"] }
       mylist.append(items)
-      #print(items)
-    #print(newData["hasNext"])
-    #break
+      print(items)
+    print(newData["hasNext"])
+    
     x = Races.insert_many(mylist)
+   
     
     if newData["hasNext"] != True:
       break
-
+    
     page = page + 1
 
+#if i get this done tommorow,that might be better - because more API requests
+async def GetRaceResults():
+  #We need to get all of the race results from the Races section first off, then loop through and apply all of the items that we need 
+  #we could also send a request to get the drivers name but i think it would be better downloading becuase i highly doubt we are going to have enough API requests for that
+  x = list(Races.find({}))
+  
+  myList = []
+  for item in x:
+    print(item)
+    response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/grands-prix/{item["Raceid"]}/races/{item["Eventid"]}/results", headers=headers)
+
+    print("Right place")
+    #c0c47b04-21d3-4765-c8fa-08d94ab130d2
+    data  = response.json()
+    print(data)
+    if (data["participations"] != []):
+        for individual_results in data["participations"]:
+          #we need to sort through the data, would be better if it was individual rows
+          if "time" in individual_results["result"]:
+            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": individual_results["result"]["time"],"points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gaptoleader": individual_results["result"]["gapToLeader"] }
+            myList.append(items)
+          else:
+            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": "N/A","points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gaptoleader": individual_results["result"]["gapToLeader"] }
+            myList.append(items)
+          print(items) 
+     
+  
+    break    
+  
+async def GetTeams():
+  print("We want to go through all of the pages and put the teams inside of the mongodb database")
+  print("73ee4826-7cf7-410e-a4c0-eb48b2f4ae79")
+  page = 1
+  
+  while True:
+    response = requests.get(f"https://hyprace-api.p.rapidapi.com//v2/teams?pageSize=25&pageNumber={page}", headers=headers)
+    data = response
+    newData = data.json()
+    print(newData)
+    #Loop through all items
+    mylist = []
+    
+    for item in newData["items"]:
+      if "fullName" in item:
+        items = {"teamid" : item["id"], "fullName" : item["fullName"], "color" : item["color"], "country" : item["country"]["name"], "countryshort" : item["country"]["alphaThreeCode"]}
+        mylist.append(items)
+        print(items)
+      else:
+        items = {"teamid" : item["id"], "fullName" : item["name"]}
+        mylist.append(items)
+    print(newData["hasNext"])
+    
+    x = Team_Names.insert_many(mylist)
+   
+    
+    if newData["hasNext"] != True:
+      break
+    
+    page = page + 1
+    
 
 
+async def GetDrivers():
+  """
+  #response = requests.get("https://hyprace-api.p.rapidapi.com/v2/drivers/8a99b5a0-8e1a-4bbc-2155-08d9161fe7c5", headers=headers)
+  response = requests.get("https://hyprace-api.p.rapidapi.com//v2/drivers?pageSize=25&pageNumber=1", headers=headers)
+  
+  data = response
+  newData = data.json()
+
+  print(newData)
+  print("e78d2503-7af4-4f96-1ec3-08d9161fe7c5")
+  """
+  page = 1
+  while True:
+    response = requests.get(f"https://hyprace-api.p.rapidapi.com//v2/drivers?pageSize=25&pageNumber={page}", headers=headers)
+    data = response
+    newData = data.json()
+    print(newData)
+    #Loop through all items
+    mylist = []
+    for item in newData["items"]:
+      items = {"driverid" : item["id"], "firstName" : item["firstName"], "lastName" : item["lastName"], "birthdate" : item["birthDate"], "country" : item["country"]["name"], "countryshort" : item["country"]["alphaThreeCode"]}
+      mylist.append(items)
+      print(items)
+    print(newData["hasNext"])
+    
+    x = Driver_Names.insert_many(mylist)
+   
+    
+    if newData["hasNext"] != True:
+      break
+    
+    page = page + 1
+  
 
 #We probably will be fine just storing them  
 async def CurrentSeason():
@@ -173,10 +267,10 @@ async def CurrentSeason():
   return newData["items"][0]["id"]
 
 async def CheckAPIStrings():
-  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c0c47b04-21d3-4765-c8fa-08d94ab130d2/races/3a9846a9-0d83-4087-8ba4-5fc8cd979e1f/results", headers=headers)
+  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/87cbb3ec-830b-4fa4-849d-6db01c1461fb/races/3969ed3f-e874-4d18-a621-f3e2bfe060d3/results", headers=headers)
 
-
-  
+  print("Right place")
+  #c0c47b04-21d3-4765-c8fa-08d94ab130d2
   data  = response.json()
   print(data)
 
@@ -202,7 +296,7 @@ async def root():
   arrayDriverNames = []
   ConstructorData = []
   season = await CurrentSeason()
-  await CheckAPIStrings()
+  #await CheckAPIStrings()
   response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/seasons/{season}/teams?pageSize=25", headers=headers)
   #await UpdateStandings()
   data = response
@@ -236,7 +330,8 @@ async def root():
 
 @app.post("/Historical")
 async def root(Data: SeasonYearData):
-
+  #await GetTeams()
+  #await GetRaceResults()
   #Get the data based on the year
   x = list(Races.find({'season': Data.year}))
   
