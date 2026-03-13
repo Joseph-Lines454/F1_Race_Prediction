@@ -1,0 +1,9 @@
+SPRINT QUALIFYING
+
+[{'session_key': 11236, 'session_type': 'Qualifying', 'session_name': 'Sprint Qualifying', 'date_start': '2026-03-13T07:30:00+00:00', 'date_end': '2026-03-13T08:14:00+00:00', 'meeting_key': 1280, 'circuit_key': 49, 'circuit_short_name': 'Shanghai', 'country_key': 53, 'country_code': 'CHN', 'country_name': 'China', 'location': 'Shanghai', 'gmt_offset': '08:00:00', 'year': 2026}]
+
+QUALIFYING STAGE - CAN FILTER THIS!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:42:00+00:00', 'driver_number': None, 'lap_number': None, 'category': 'Flag', 'flag': 'CHEQUERED', 'scope': 'Track', 'sector': None, 'qualifying_phase': 1, 'message': 'CHEQUERED FLAG', '_key': '1773387720000_None_None_Flag_CHEQUERED_Track_None', '_id': 1773387722866}
+
+2026-03-13 08:09:17.647 | {'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:59:00.269000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 2, 'message': 'SESSION FINISHED', '_key': '1773388740269_None_None_SessionStatus_None_None_None', '_id': 1773388742443}

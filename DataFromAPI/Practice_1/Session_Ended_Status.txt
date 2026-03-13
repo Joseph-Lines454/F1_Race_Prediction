@@ -1,0 +1,4 @@
+THIS IS HOW WE KNOW THAT THE SESSION HAS ENEDED!!!!!
+
+2026-03-13 04:32:03.918 | {'meeting_key': 1280, 'session_key': 11235, 'date': '2026-03-13T04:30:00.290000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': None, 'message': 'SESSION FINISHED', '_key': '1773376200290_None_None_SessionStatus_None_None_None', '_id': 1773376202359}
+

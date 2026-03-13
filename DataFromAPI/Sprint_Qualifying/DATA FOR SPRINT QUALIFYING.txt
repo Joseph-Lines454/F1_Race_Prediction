@@ -1,0 +1,23 @@
+DATA FOR SPRINT QUALIFYING
+
+{'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:30:00.232000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 1, 'message': 'SESSION STARTED', '_key': '1773387000232_None_None_SessionStatus_None_None_None', '_id': 1773387002324}
+
+We have recived a message for OpenF1 API!!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:30:00+00:00', 'driver_number': None, 'lap_number': None, 'category': 'Flag', 'flag': 'GREEN', 'scope': 'Track', 'sector': None, 'qualifying_phase': 1, 'message': 'GREEN LIGHT - PIT EXIT OPEN', '_key': '1773387000000_None_None_Flag_GREEN_Track_None', '_id': 1773387002918}
+
+We have recived a message for OpenF1 API!!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'driver_number': 77, 'lap_number': 1, 'date_start': None, 'duration_sector_1': None, 'duration_sector_2': None, 'duration_sector_3': None, 'i1_speed': None, 'i2_speed': None, 'is_pit_out_lap': False, 'lap_duration': None, 'segments_sector_1': [2064], 'segments_sector_2': None, 'segments_sector_3': None, 'st_speed': None, '_key': '11236_1_77', '_id': 1773387010663}
+
+We have recived a message for OpenF1 API!!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'driver_number': 6, 'lap_number': 1, 'date_start': '2026-03-13T07:30:09.659000', 'duration_sector_1': None, 'duration_sector_2': None, 'duration_sector_3': None, 'i1_speed': None, 'i2_speed': None, 'is_pit_out_lap': True, 'lap_duration': None, 'segments_sector_1': None, 'segments_sector_2': None, 'segments_sector_3': None, 'st_speed': None, '_key': '11236_1_6', '_id': 1773387011769}
+
+We have recived a message for OpenF1 API!!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'driver_number': 6, 'lap_number': 1, 'date_start': '2026-03-13T07:30:09.659000', 'duration_sector_1': None, 'duration_sector_2': None, 'duration_sector_3': None, 'i1_speed': None, 'i2_speed': None, 'is_pit_out_lap': True, 'lap_duration': None, 'segments_sector_1': [2064], 'segments_sector_2': None, 'segments_sector_3': None, 'st_speed': None, '_key': '11236_1_6', '_id': 1773387017102}
+
+We have recived a message for OpenF1 API!!!
+
+{'meeting_key': 1280, 'session_key': 11236, 'driver_number': 3, 'lap_number': 1, 'date_start': '2026-03-13T07:30:17.715000', 'duration_sector_1': None, 'duration_sector_2': None, 'duration_sector_3': None, 'i1_speed': None, 'i2_speed': None, 'is_pit_out_lap': True, 'lap_duration': None, 'segments_sector_1': None, 'segments_sector_2': None, 'segments_sector_3': None, 'st_speed': None, '_key': '11236_1_3', '_id': 1773387019799}
