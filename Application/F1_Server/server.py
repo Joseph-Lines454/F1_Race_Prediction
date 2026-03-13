@@ -13,6 +13,8 @@ from datetime import date
 from pydantic import BaseModel
 import paho.mqtt.client as mqtt
 import ssl
+from urllib.request import urlopen
+import json
 #we want to make a check that if each year has not been added 
 
 app = FastAPI()
@@ -76,22 +78,29 @@ def on_connect(client, userdata, flags, rc, properties = None):
         print("Connected to OpenF1 MQTT broker")
         #client.subscribe("v1/location")
         #client.subscribe("v1/laps")
-        client.subscribe("#") # Subscribe to all topics
+        client.subscribe("v1/laps")
+        client.subscribe("v1/race_control")
   else:
     print(f"Failed to connect, return code {rc}")
   
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
+
+
 def on_message(client,userdata,msg):
   print("We have recived a message for OpenF1 API!!!")
-
+  data = json.loads(msg.payload.decode())
+  print(data)
+  #response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
+  #data2 = response.json()
+  #print(data2)
 
 mqtt_broker = "mqtt.openf1.org"
 mqtt_port = 8883
 mqtt_username = "joelines194@gmail.com"
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+client = mqtt.Client()
 client.username_pw_set(username=mqtt_username, password=access_token)
-client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+client.tls_set()
 
 client.on_connect = on_connect
 client.on_message = on_message
@@ -135,7 +144,7 @@ async def UpdateStandings():
   for j in dataStore[1]:
     j["timestamp"] = str(datetime.today().strftime("%y-%m-%d"))
   x = Teams_Standings.insert_many(dataStore[1])
-  print("We are here!!")
+  #print("We are here!!")
 
 #Function to get the standings back
 
@@ -146,14 +155,14 @@ async def functionStoreRaces():
     response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/grands-prix?pageNumber={page}",headers=headers)
     data = response
     newData = data.json()
-    print(newData)
+    #print(newData)
     #Loop through all items
     mylist = []
     for item in newData["items"]:
       items = {"Raceid" : item["id"],"round" : item["round"],"name" : item["name"],"season" : item["season"]["year"], "Eventid": item["schedule"][0]["id"] }
       mylist.append(items)
-      print(items)
-    print(newData["hasNext"])
+      #print(items)
+   # print(newData["hasNext"])
     
     x = Races.insert_many(mylist)
    
@@ -171,13 +180,13 @@ async def GetRaceResults():
   
   myList = []
   for item in x:
-    print(item)
+    #print(item)
     response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/grands-prix/{item["Raceid"]}/races/{item["Eventid"]}/results", headers=headers)
 
-    print("Right place")
+    #print("Right place")
     #c0c47b04-21d3-4765-c8fa-08d94ab130d2
     data  = response.json()
-    print(data)
+    #print(data)
     if (data["participations"] != []):
         for individual_results in data["participations"]:
           #we need to sort through the data, would be better if it was individual rows
@@ -187,21 +196,21 @@ async def GetRaceResults():
           else:
             items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": "N/A","points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gaptoleader": individual_results["result"]["gapToLeader"] }
             myList.append(items)
-          print(items) 
+          #print(items) 
      
   
     break    
   
 async def GetTeams():
-  print("We want to go through all of the pages and put the teams inside of the mongodb database")
-  print("73ee4826-7cf7-410e-a4c0-eb48b2f4ae79")
+  #print("We want to go through all of the pages and put the teams inside of the mongodb database")
+ # print("73ee4826-7cf7-410e-a4c0-eb48b2f4ae79")
   page = 1
   
   while True:
     response = requests.get(f"https://hyprace-api.p.rapidapi.com//v2/teams?pageSize=25&pageNumber={page}", headers=headers)
     data = response
     newData = data.json()
-    print(newData)
+    #print(newData)
     #Loop through all items
     mylist = []
     
@@ -213,7 +222,7 @@ async def GetTeams():
       else:
         items = {"teamid" : item["id"], "fullName" : item["name"]}
         mylist.append(items)
-    print(newData["hasNext"])
+    #print(newData["hasNext"])
     
     x = Team_Names.insert_many(mylist)
    
@@ -247,8 +256,8 @@ async def GetDrivers():
     for item in newData["items"]:
       items = {"driverid" : item["id"], "firstName" : item["firstName"], "lastName" : item["lastName"], "birthdate" : item["birthDate"], "country" : item["country"]["name"], "countryshort" : item["country"]["alphaThreeCode"]}
       mylist.append(items)
-      print(items)
-    print(newData["hasNext"])
+      #print(items)
+    #print(newData["hasNext"])
     
     x = Driver_Names.insert_many(mylist)
    
@@ -284,10 +293,11 @@ class SeasonYearData(BaseModel):
 @app.on_event("startup")
 def startup_mqtt():
   try:
-    client.connect(mqtt_broker, mqtt_port,60)
+    client.connect(mqtt_broker, mqtt_port, 60)
     client.loop_start()
-  except:
-    print("computer says no")
+    print("MQTT connection started")
+  except Exception as e:
+        print("MQTT failed:", e)
 
 @app.get("/F1_Statistics")
 async def root():
