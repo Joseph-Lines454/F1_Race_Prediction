@@ -15,9 +15,10 @@ let Season = Array.from({length:  2026 + 1 - 1950}, (_,i) => i +  1950)
 //Could maybe default to the 2026 season for simplicty
 
 
-/*
+
 const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
 
+/*
 websocket.addEventListener("open", event => {
   websocket.send("Connection established")
 });
@@ -26,6 +27,8 @@ websocket.addEventListener("message", event=> {
   console.log("Message Recived From Server: ", event.data)
 });
 */
+websocket.onopen = () => console.log("Connected!!")
+websocket.onmessage = (event) => console.log("recived:" + event.data )
 
 
 //We should return all of th seasons and display all of the races of that season

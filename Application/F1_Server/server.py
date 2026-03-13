@@ -5,7 +5,7 @@ import requests
 import json
 import http.client
 from pymongo import MongoClient
-
+import asyncio
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
@@ -15,9 +15,10 @@ import paho.mqtt.client as mqtt
 import ssl
 from urllib.request import urlopen
 import json
-#we want to make a check that if each year has not been added 
+#CONNECTION MANAGER TO ALLOW FOR OUR WEBSOCEKTS TO BE USED
 
 app = FastAPI()
+
 
 origins = [
     "http://localhost:3000"
@@ -25,13 +26,35 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
     )
 
 
+class ConnectionManager:
+  def __init__(self):
+    self.active_connections: list[WebSocket] = []
+
+  async def connect(self,websocket: WebSocket):
+    await websocket.accept()
+    print("We should have connected to the websocket!!!")
+    self.active_connections.append(websocket)
+
+  async def disconnect(self, websocket: WebSocket):
+    self.active_connections.remove(websocket)
+  async def send_personal_message(self,message: str, websocket: WebSocket):
+    await websocket.send_text(message)
+  async def broadcast(self,message):
+    print("We are BROADCASTING A MESSAGE THIS IS FROM CONNECTION MANAGER!!!")
+    for connection in self.active_connections:
+      await connection.send_text(json.dumps(message))
+    print("Working??")
+
+
+manager = ConnectionManager()
+loop = None
 #This is going to be used for live telem
 token_url = "https://api.openf1.org/token"
 paramsLive_Telem = {
@@ -71,6 +94,7 @@ Drivers_Standings = newdatabase["Drivers_Standings"]
 Teams_Standings = newdatabase["Teams_Standings"]
 Driver_Names = newdatabase["Driver_Names"]
 Team_Names = newdatabase["Team_Names"]
+SessionData = newdatabase["SessionData"]
 def on_connect(client, userdata, flags, rc, properties = None):
   print("we are here!!")
   if rc == 0:
@@ -85,14 +109,73 @@ def on_connect(client, userdata, flags, rc, properties = None):
   
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
 
-
+SessionType = "Sprint Qualifying"
 def on_message(client,userdata,msg):
+  
   print("We have recived a message for OpenF1 API!!!")
   data = json.loads(msg.payload.decode())
   print(data)
-  #response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
-  #data2 = response.json()
-  #print(data2)
+
+  #Get the session type based on the ID for the live timings
+ 
+  if SessionType == None:
+    response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
+    data2 = response.json()
+    SessionData.delete_many({})
+    SessionType = data2["session_name"]
+  if SessionType == "Sprint Qualifying" or SessionType == "Qualifying":
+    PresentQualifyingData(data)
+  if SessionType == "Practice 1" or SessionType == "Practice 2" or SessionType == "Practice 3":
+    PresentPracticeData()
+  #Check what the actual thing is for this
+  #if SessionType == "Race Sprint":
+    #PresentRace_Data(data)
+
+#def PresentRace_Data(RaceData):
+
+
+
+#This is looking like it is done which is fantastic
+def PresentQualifyingData(DataQualifying):
+  #Convert the lap time back to zero
+  x = (SessionData.find_one({"driver_number" : DataQualifying["driver_number"]}))
+  print(x)
+  
+  if "message" in DataQualifying and "qualifying_phase" in DataQualifying:
+    if DataQualifying["message"] == "SESSION FINISHED":
+      print("delete all data from that collection")
+      global SessionType
+      SessionType = None
+      SessionData.delete_many({})
+      print("success maybe???")
+      #we delete all data from qualifying
+  else:
+    x = list(SessionData.find({"driver_number" : DataQualifying["driver_number"]}))
+    print(x)
+    
+    if x == [] and DataQualifying["lap_duration"] != None:
+      SessionData.insert_one(DataQualifying)
+    
+    
+    elif x[0]["lap_duration"] <= DataQualifying["lap_duration"] and DataQualifying["lap_duration"] != None :
+      #Aim of this is to delete laptimes which are old - and replace with new ones
+      SessionData.delete_one({"driver_number" : x[0]["driver_number"]})
+      SessionData.insert_one(DataQualifying)
+      print("Success!!")
+    #WE NEED TO TRIGER A WEBSOCKET HERE to get data back -
+    
+  GetCurrentSessionsData()
+
+def GetCurrentSessionsData():
+  x = list(SessionData.find())
+  asyncio.run_coroutine_threadsafe(manager.broadcast({"type" : "qyalifying_update", "data": x }), loop)
+
+#def UpdateSessionStatus():
+
+#We know what this data will look like
+def PresentPracticeData():
+  print("This is where we present practice data")
+  #We need to put all of the data into the database then based on new data compare that drivers old times and see if it is faster then replace and send a response to the client
 
 mqtt_broker = "mqtt.openf1.org"
 mqtt_port = 8883
@@ -295,6 +378,8 @@ def startup_mqtt():
   try:
     client.connect(mqtt_broker, mqtt_port, 60)
     client.loop_start()
+    global loop
+    loop = asyncio.get_running_loop()
     print("MQTT connection started")
   except Exception as e:
         print("MQTT failed:", e)
@@ -338,13 +423,30 @@ async def root():
 
 #Historical is looking good also need to get race results based on id, need to store in database
 
+async def WebsocketSend_Test():
+  #print("This is running")
+  #print (f"Broadcasting to {len(manager.active_connections)} clients")
+  if loop:
+    print("There is a loop")
+    asyncio.run_coroutine_threadsafe(manager.broadcast({"type" : "qualifying_update", "data": "This is somedatahahaha" }), loop)
+  else:
+    print("No loop")
+
 @app.post("/Historical")
 async def root(Data: SeasonYearData):
   #await GetTeams()
   #await GetRaceResults()
+  
+  #await WebsocketSend_Test()
+  
+  PresentQualifyingData({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap': False, 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+  """
+  PresentQualifyingData( {'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:59:00.269000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 2, 'message': 'SESSION FINISHED', '_key': '1773388740269_None_None_SessionStatus_None_None_None', '_id': 1773388742443})
+  """
+ 
+
   #Get the data based on the year
   x = list(Races.find({'season': Data.year}))
-  
   x = list(x)
   for races in x:
     races["_id"] = str(races["_id"])
@@ -355,13 +457,13 @@ async def root(Data: SeasonYearData):
 
 
 
-"""
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket:WebSocket):
    await websocket.accept()
+   manager.active_connections.append(websocket)
    while True:
       data = await websocket.receive_text()
       await websocket.send_text(f"Message text was {data}")
 
-      
-"""
+  

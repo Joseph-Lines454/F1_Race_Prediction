@@ -1,3 +1,19 @@
+db.SessionData.find()
+db.SessionData.insertOne({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap':' False', 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+db.SessionData.find({})
+db.SessionData.findone()
+db.SessionData.find()
+db.SessionData.insertOne({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap':' False', 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+db.SessionData.insertOne({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap': False, 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+db.SessionData.deleteMany({})
+db.SessionData.insertOne({'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:30:00.232000+00:00', 'driver_number': 'None', 'lap_number': 'None', 'category': 'SessionStatus', 'flag': 'None', 'scope': 'None', 'sector': 'None', 'qualifying_phase': 1, 'message': 'SESSION STARTED', '_key': '1773387000232_None_None_SessionStatus_None_None_None', '_id': 1773387002324})
+use Drivers
+show databases;
+db.SessionData.insertOne({'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:30:00.232000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 1, 'message': 'SESSION STARTED', '_key': '1773387000232_None_None_SessionStatus_None_None_None', '_id': 1773387002324})
+show collections
+use Drivers
+show databases;
+use Database;
 it
 db.Team_Names.find()
 show collections
