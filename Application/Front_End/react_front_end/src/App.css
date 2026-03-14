@@ -1,13 +1,50 @@
 .NavigationBar{
- background-color: red;
- display: flex;
- justify-content: center;
+  border-radius: 25px;
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: rgb(73, 183, 168);
+  display: flex;
+  margin: auto;
+  width: 60%;
 }
 .navigationLinks {
   display: flex;
   align-items: center;
   padding-left: 5%;
-   text-decoration: none;
+  text-decoration: none;
+  margin: auto;
+}
+
+.BodyCenter {
+  border-radius: 25px;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  margin: auto;
+  width: 60%;
+  height: 100%;
+
+}
+
+th {
+  font-size: 22px;
+}
+
+
+.rows {
+  cursor: pointer;
+}
+
+.rows td {
+  padding: 12px 16px;
+}
+
+table {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 50%;
+  min-height: 100%;
+  margin: auto;
 }
 ul
 {
@@ -17,22 +54,25 @@ ul
   
 }
 .individualElem {
-  background-color: chartreuse;
+  background-color:  rgb(73, 183, 168);
   padding: 14px 25px;
   text-align: center;
- 
+  text-decoration: none;
+  color: black;
 }
 
 
-.individualElem:hover {
-  background-color: rgb(190, 61, 38);
-  padding: 14px 25px;
-  text-align: center;
-}
 
+.NoData {
+  display: flex;
+  justify-content: center;   /* horizontal */
+  align-items: center;       /* vertical */
+  height: 100vh;
+}
 
 h1 {
-justify-content: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .ButtonDis {

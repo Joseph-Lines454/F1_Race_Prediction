@@ -474,9 +474,10 @@ def root(Data: GetRaceR):
   for d in x:
     TN = Team_Names.find_one({"teamid" : d["Teamid"]})
     DN = Driver_Names.find_one({"driverid" : d["Driverid"]})
-    DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "country": TN['countryshort'], "colour" : TN["color"]  }
-    print(DriverData)
+    DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "colour" : TN["color"], "points": d["points"]  }
+    
     myList.append(DriverData)
+    print(d)
 
   return myList
 

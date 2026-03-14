@@ -52,7 +52,7 @@ function Historical() {
     {
       console.log(this.responseText + "This is the response issue!")
       //Seasons = JSON.parse(this.responseText)
-      dataDisplaySet(JSON.parse(this.responseText))
+      dataDisplaySet((JSON.parse(this.responseText)).reverse())
     }
     }
   
@@ -103,7 +103,7 @@ function Historical() {
           <button className="ButtonDis">Select Season</button>
           <div className="dropdownSeasons">
 
-            {Season.map((Season, index) => (
+            {(Season).reverse().map((Season, index) => (
                   <label onClick={() => GetHistoricalData(Season)}>{Season}</label>
                 ))}
                   
@@ -114,20 +114,31 @@ function Historical() {
           <button onClick={() => GetHistoricalData(SeasonIn)} className='SearchButton'>Search</button>
         </div>
     </div>
-    
-    <div>
-      {dataDisplay != undefined && dataDisplay.map((data, index) => (
-               
-                <tr key = {index}>
-                  <div onClick={ () =>  GetRaceResults([data["Eventid"],data["Raceid"]])}>
-                    <th>Round: {data["round"]}</th>
-                    <th>Event: {data["name"]}</th>
-                    <th>Season: {data["season"]}</th>
-                  </div>
-                </tr>
-                
-            ))}
-    </div>
+    <div className='BodyCenter'>
+       <table>
+          <tbody>
+            
+              <tr>
+                <th>Round</th>
+                <th>Event</th>
+                <th>Season</th>
+              </tr>
+              {dataDisplay != undefined && dataDisplay.map((data, index) => (
+                      
+                        <tr className='rows' key = {index} onClick={ () =>  GetRaceResults([data["Eventid"],data["Raceid"]])}>
+                         
+                            <td>{data["round"]}</td>
+                            <td>{data["name"]}</td>
+                            <td>{data["season"]}</td>
+                         
+                        </tr>
+                        
+                    ))}
+             
+            
+            </tbody>
+          </table>
+         </div>
   </div>         
   )
 }
