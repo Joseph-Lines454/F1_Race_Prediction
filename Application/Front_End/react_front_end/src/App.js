@@ -6,7 +6,7 @@ import F1_Prediction from './F1_Prediction.js'
 import Historical from './historical.js'
 import F1_Live_Timings from "./F1_Live_Timings.js"
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-
+import F1_ShowRaceResults from './F1_ShowRaceResults.js'
 function App() {
   console.log("Here in app!")
   return (
@@ -23,6 +23,7 @@ function App() {
           <Link to="/F1_DriverStandings" className = "individualElem">F1 Standings</Link>
           <Link to ="/historical" className = "individualElem">Historical</Link>
           <Link to = "/F1_Live_Timings" className="individualElem">Live Timings</Link>
+          
         </nav>
       </div>
      
@@ -32,6 +33,7 @@ function App() {
         <Route path="/F1_DriverStandings" element={<F1_DriverStandings />} />
         <Route path="/historical" element={<Historical />} />
         <Route path = "/F1_Live_Timings" element={<F1_Live_Timings />} />
+        <Route path = "/F1_ShowRaceResults" element={<F1_ShowRaceResults/>} />
       </Routes>
     </BrowserRouter>
   );

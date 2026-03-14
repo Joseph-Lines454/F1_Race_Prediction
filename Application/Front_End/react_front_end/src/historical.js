@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 
 
 
-
 let Response = undefined;
 
 
@@ -16,19 +15,7 @@ let Season = Array.from({length:  2026 + 1 - 1950}, (_,i) => i +  1950)
 
 
 
-const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
 
-/*
-websocket.addEventListener("open", event => {
-  websocket.send("Connection established")
-});
-
-websocket.addEventListener("message", event=> {
-  console.log("Message Recived From Server: ", event.data)
-});
-*/
-websocket.onopen = () => console.log("Connected!!")
-websocket.onmessage = (event) => console.log("recived:" + event.data )
 
 
 //We should return all of th seasons and display all of the races of that season
@@ -36,7 +23,7 @@ websocket.onmessage = (event) => console.log("recived:" + event.data )
 function Historical() {
   const [dataDisplay,dataDisplaySet] = useState(undefined)
   const [SeasonIn,SeasonSet] = useState(null)
-  //io
+  const navigation = useNavigate();
   const GetSeasonData =  () => {
     //This  is where we make a request to get  that seasons  data to  the client
     console.log(Number(SeasonIn))
@@ -49,6 +36,11 @@ function Historical() {
       alert("We got it right!!!")
       GetHistoricalData()
     }
+
+  }
+  const Redirect = () => {
+    
+    
 
   }
 
@@ -67,6 +59,25 @@ function Historical() {
     xhttp.open("POST","http://127.0.0.1:8001/Historical",true)
     xhttp.setRequestHeader('Content-Type', 'application/json')
     xhttp.send(JSON.stringify({year : Number(season)}));
+  }
+  const GetRaceResults = (data) => {
+    
+    console.log(data[0])
+    console.log(data[1])
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    
+    if (this.readyState == 4 && this.status == 200)
+    {
+      console.log(this.responseText)
+      //Seasons = JSON.parse(this.responseText)
+     navigation("/F1_ShowRaceResults", {state: {data : JSON.parse(this.responseText)}});
+    }
+    }
+  
+    xhttp.open("POST","http://127.0.0.1:8001/GetData",true)
+    xhttp.setRequestHeader('Content-Type', 'application/json')
+    xhttp.send(JSON.stringify({EventID : String(data[0]), RaceID : String(data[1])}));
   }
 
   const SetSeasonSel = (Season)  => {
@@ -106,15 +117,15 @@ function Historical() {
     
     <div>
       {dataDisplay != undefined && dataDisplay.map((data, index) => (
-              
+               
                 <tr key = {index}>
-                  
-                  <th>Round: {data["round"]}</th>
-                  <th>Event: {data["name"]}</th>
-                  <th>Season: {data["season"]}</th>
-                  
+                  <div onClick={ () =>  GetRaceResults([data["Eventid"],data["Raceid"]])}>
+                    <th>Round: {data["round"]}</th>
+                    <th>Event: {data["name"]}</th>
+                    <th>Season: {data["season"]}</th>
+                  </div>
                 </tr>
-            
+                
             ))}
     </div>
   </div>         

@@ -39,8 +39,8 @@ xhttp.onreadystatechange = function() {
 
 }
   
-xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-xhttp.send();
+//xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
+//xhttp.send();
 
 var GetSeasonData = new XMLHttpRequest();
 GetSeasonData.onreadystatechange = function()
@@ -58,8 +58,8 @@ GetSeasonData.onreadystatechange = function()
     
   }
 }
-GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
-GetSeasonData.send();
+//GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
+//GetSeasonData.send();
 
 function SortDataForGraph(Data)
 {

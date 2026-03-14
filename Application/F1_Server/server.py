@@ -47,9 +47,10 @@ class ConnectionManager:
   async def send_personal_message(self,message: str, websocket: WebSocket):
     await websocket.send_text(message)
   async def broadcast(self,message):
-    print("We are BROADCASTING A MESSAGE THIS IS FROM CONNECTION MANAGER!!!")
+    print("We are broadcasting the message")
+    print("Active connections:", len(self.active_connections))
     for connection in self.active_connections:
-      await connection.send_text(json.dumps(message))
+      await connection.send_json(message)
     print("Working??")
 
 
@@ -95,6 +96,7 @@ Teams_Standings = newdatabase["Teams_Standings"]
 Driver_Names = newdatabase["Driver_Names"]
 Team_Names = newdatabase["Team_Names"]
 SessionData = newdatabase["SessionData"]
+RaceResults = newdatabase["RaceResults"]
 def on_connect(client, userdata, flags, rc, properties = None):
   print("we are here!!")
   if rc == 0:
@@ -104,33 +106,44 @@ def on_connect(client, userdata, flags, rc, properties = None):
         #client.subscribe("v1/laps")
         client.subscribe("v1/laps")
         client.subscribe("v1/race_control")
+        client.subscribe("v1/car_telemetry")
+        print(client.subscribe("v1/laps"))
+        print(client.subscribe("v1/race_control"))
+        print(client.subscribe("v1/car_telemetry"))
+        #client.subscribe("#")
   else:
     print(f"Failed to connect, return code {rc}")
   
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
 
-SessionType = "Sprint Qualifying"
+SessionType = ""
 def on_message(client,userdata,msg):
-  
+  #global SessionType
   print("We have recived a message for OpenF1 API!!!")
   data = json.loads(msg.payload.decode())
   print(data)
 
   #Get the session type based on the ID for the live timings
- 
-  if SessionType == None:
+  
+  if SessionType == "":
     response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
     data2 = response.json()
+    print(data2)
     SessionData.delete_many({})
-    SessionType = data2["session_name"]
+    SessionType = data2[0]["session_name"]
   if SessionType == "Sprint Qualifying" or SessionType == "Qualifying":
     PresentQualifyingData(data)
   if SessionType == "Practice 1" or SessionType == "Practice 2" or SessionType == "Practice 3":
     PresentPracticeData()
+
+  if SessionType == "Main Race":
+    print(data)
+
+  print(SessionType)
   #Check what the actual thing is for this
   #if SessionType == "Race Sprint":
     #PresentRace_Data(data)
-
+  
 #def PresentRace_Data(RaceData):
 
 
@@ -145,7 +158,7 @@ def PresentQualifyingData(DataQualifying):
     if DataQualifying["message"] == "SESSION FINISHED":
       print("delete all data from that collection")
       global SessionType
-      SessionType = None
+      SessionType = ""
       SessionData.delete_many({})
       print("success maybe???")
       #we delete all data from qualifying
@@ -167,7 +180,9 @@ def PresentQualifyingData(DataQualifying):
   GetCurrentSessionsData()
 
 def GetCurrentSessionsData():
+  print("We are here and need to be")
   x = list(SessionData.find())
+  print(x)
   asyncio.run_coroutine_threadsafe(manager.broadcast({"type" : "qyalifying_update", "data": x }), loop)
 
 #def UpdateSessionStatus():
@@ -183,8 +198,8 @@ mqtt_username = "joelines194@gmail.com"
 
 client = mqtt.Client()
 client.username_pw_set(username=mqtt_username, password=access_token)
-client.tls_set()
-
+client.tls_set(cert_reqs=ssl.CERT_REQUIRED)
+client.tls_insecure_set(False)
 client.on_connect = on_connect
 client.on_message = on_message
 
@@ -260,7 +275,6 @@ async def GetRaceResults():
   #We need to get all of the race results from the Races section first off, then loop through and apply all of the items that we need 
   #we could also send a request to get the drivers name but i think it would be better downloading becuase i highly doubt we are going to have enough API requests for that
   x = list(Races.find({}))
-  
   myList = []
   for item in x:
     #print(item)
@@ -270,19 +284,29 @@ async def GetRaceResults():
     #c0c47b04-21d3-4765-c8fa-08d94ab130d2
     data  = response.json()
     #print(data)
-    if (data["participations"] != []):
+    #print(data)
+    if (data["participations"] != [] ):
         for individual_results in data["participations"]:
-          #we need to sort through the data, would be better if it was individual rows
-          if "time" in individual_results["result"]:
-            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": individual_results["result"]["time"],"points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gaptoleader": individual_results["result"]["gapToLeader"] }
+          #we need to sort through the data, would be better if it was individual rows          
+          if "time" in individual_results["result"] and "gapToLeader" not in individual_results["result"]:
+            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": individual_results["result"]["time"],"points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gapToLeader": 0 }
+            myList.append(items)
+          if "time" in individual_results["result"] and "gapToLeader" in individual_results["result"]:
+            print(individual_results["result"])
+            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": individual_results["result"]["time"],"points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gapToLeader": individual_results["result"]["gapToLeader"] }
             myList.append(items)
           else:
-            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": "N/A","points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gaptoleader": individual_results["result"]["gapToLeader"] }
+            items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": "N/A","points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gapToLeader": "N/A" }
             myList.append(items)
-          #print(items) 
-     
-  
-    break    
+          print(items) 
+          
+
+      
+    
+  xin = RaceResults.insert_many(myList)
+  print("Indatabase")
+    
+       
   
 async def GetTeams():
   #print("We want to go through all of the pages and put the teams inside of the mongodb database")
@@ -369,6 +393,9 @@ async def CheckAPIStrings():
   
   #print(response.json())
 
+class GetRaceR(BaseModel):
+  EventID: str
+  RaceID: str
 
 class SeasonYearData(BaseModel):
   year: int
@@ -432,15 +459,38 @@ async def WebsocketSend_Test():
   else:
     print("No loop")
 
+
+def GetRaceResults():
+  print("Getting race results here...")
+  #we have the id associated with races, we can use it 
+
+@app.post("/GetData")
+def root(Data: GetRaceR):
+  x = list(RaceResults.find({'Raceid': Data.RaceID, "Eventid" : Data.EventID }))
+  print("We are here!")
+  myList = []
+  #Here we need to get the driver name as well as the team name
+  
+  for d in x:
+    TN = Team_Names.find_one({"teamid" : d["Teamid"]})
+    DN = Driver_Names.find_one({"driverid" : d["Driverid"]})
+    DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "country": TN['countryshort'], "colour" : TN["color"]  }
+    print(DriverData)
+    myList.append(DriverData)
+
+  return myList
+
 @app.post("/Historical")
 async def root(Data: SeasonYearData):
   #await GetTeams()
   #await GetRaceResults()
   
+
   #await WebsocketSend_Test()
-  
-  PresentQualifyingData({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap': False, 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+  #await GetRaceResults()
   """
+  PresentQualifyingData({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap': False, 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
+  
   PresentQualifyingData( {'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:59:00.269000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 2, 'message': 'SESSION FINISHED', '_key': '1773388740269_None_None_SessionStatus_None_None_None', '_id': 1773388742443})
   """
  
@@ -460,10 +510,21 @@ async def root(Data: SeasonYearData):
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket:WebSocket):
-   await websocket.accept()
-   manager.active_connections.append(websocket)
-   while True:
-      data = await websocket.receive_text()
-      await websocket.send_text(f"Message text was {data}")
+  try:
+    await websocket.accept()
+    manager.active_connections.append(websocket)
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message text was {data}")
+  except:
+     manager.active_connections.remove(websocket)
 
   
+@app.get("/testaba")
+def root():
+  #await GetTeams()
+  #await GetRaceResults()
+  
+  #await WebsocketSend_Test()
+  print("We have reached test")
+  GetCurrentSessionsData()
