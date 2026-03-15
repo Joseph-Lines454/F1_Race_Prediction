@@ -68,7 +68,8 @@ response_F1= requests.post(token_url,data=paramsLive_Telem)
 if response_F1.status_code == 200:
   response = response_F1.json()
   access_token = response["access_token"]
-
+else:
+  print(response_F1.text)
 
 #Hyprace is going to be used for everything else
 
@@ -121,10 +122,11 @@ def on_message(client,userdata,msg):
   #global SessionType
   print("We have recived a message for OpenF1 API!!!")
   data = json.loads(msg.payload.decode())
+  topic = msg.topic
   print(data)
 
   #Get the session type based on the ID for the live timings
-  
+  """
   if SessionType == "":
     response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
     data2 = response.json()
@@ -143,7 +145,8 @@ def on_message(client,userdata,msg):
   #Check what the actual thing is for this
   #if SessionType == "Race Sprint":
     #PresentRace_Data(data)
-  
+  """
+  SendData({"topic": topic, "data" : data})
 #def PresentRace_Data(RaceData):
 
 
@@ -185,6 +188,8 @@ def GetCurrentSessionsData():
   print(x)
   asyncio.run_coroutine_threadsafe(manager.broadcast({"type" : "qyalifying_update", "data": x }), loop)
 
+def SendData(myData):
+  asyncio.run_coroutine_threadsafe(manager.broadcast(myData), loop)
 #def UpdateSessionStatus():
 
 #We know what this data will look like
@@ -242,7 +247,7 @@ async def UpdateStandings():
   for j in dataStore[1]:
     j["timestamp"] = str(datetime.today().strftime("%y-%m-%d"))
   x = Teams_Standings.insert_many(dataStore[1])
-  #print("We are here!!")
+  print("We are here!!")
 
 #Function to get the standings back
 
@@ -486,7 +491,6 @@ async def root(Data: SeasonYearData):
   #await GetTeams()
   #await GetRaceResults()
   
-
   #await WebsocketSend_Test()
   #await GetRaceResults()
   """

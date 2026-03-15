@@ -115,7 +115,7 @@ function Historical() {
         </div>
     </div>
     <div className='BodyCenter'>
-       <table>
+       <table class='tableAlign'>
           <tbody>
             
               <tr>

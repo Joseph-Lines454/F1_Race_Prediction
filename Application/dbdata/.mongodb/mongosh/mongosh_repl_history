@@ -1,3 +1,16 @@
+db.Teams_Standings.deleteOne({timestamp: '26-03-09'})
+db.Drivers_Standings.deleteOne({timestamp: '26-03-09'})
+db.Drivers_Standings.deleteone({name : "George Russell", timestamp: '26-03-09'})
+db.deleteone({name : "George Russell", timestamp: '26-03-09'})
+db.delete({name : "George Russell", timestamp: '26-03-09'})
+db.deleteOne({name : "George Russell", timestamp: '26-03-09'})
+it
+db.Drivers_Standings.find()
+db.Drivers_Stadnings.find()
+ show collections;
+use Drivers;
+use Drivers;l
+show databases;
 db.Team_Names.find()
 db.Driver_Names.find()
 use Drivers

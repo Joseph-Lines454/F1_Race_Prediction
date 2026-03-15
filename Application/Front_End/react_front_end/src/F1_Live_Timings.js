@@ -11,30 +11,14 @@ function F1_Live_Timings() {
 
   const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
   websocket.onopen = () => console.log("Connected!!")
-  websocket.onmessage = (event) => {Object.values(assigndata(event.data))}
-  
+  websocket.onmessage = (event) => {console.log(event.data)}
+  /*Object.values(assigndata(event.data))*/
  
    return (
+    <div>
+      <h1>We are using console.log for now</h1>
+    </div>
     
-    (data != undefined) && (
-        <div>
-          <h1>Live F1 Telematry Test - Qualifying</h1>
-         {data[1].map((data, index) => (
-                  
-                    <tr key = {index}>
-                      
-                      <th>{data.lap_duration}</th>
-                      
-                      
-                    </tr>
-                
-                ))}
-        
-            
-      </div>
-    
-      
-    )
     
   
     )

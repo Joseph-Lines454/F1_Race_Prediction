@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import './App.css'
 import { useEffect, useState } from 'react';
-import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend,Tooltip  } from 'recharts';
+import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend,Tooltip, Cell } from 'recharts';
 import { RechartsDevtools} from '@recharts/devtools';
 //This function gets the year that the usser selected, then we query the API for that year and return a new result 
 let Seasons = null;
-
+let DriverColours = ["#FF5733","#33FF57","#3357FF","#FF33A1","#33fff5","#F5FF33","#FF8C33","#"]
 
 //Might need to use useeffect here...
 let Response = undefined;
@@ -16,6 +16,14 @@ let Drivers = undefined;
 let Drivers_Over_Season = undefined;
 let Teams_Over_Season = undefined;
 var xhttp = new XMLHttpRequest();
+
+let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "orange","haas": "lightgray", "red bull racing": "lightblue","racing bulls" :"darkyellow","alpine": "lightpink","Audi": "silver","Williams": "dark blue","Cadillac" : "black", "aston martin": "darkgreen"}
+//Driver Colours here
+
+function AssignColoursGraph () {
+  //Assign Colours By Team
+}
+
 xhttp.onreadystatechange = function() {
 
   if (this.readyState == 4 && this.status == 200)
@@ -39,8 +47,8 @@ xhttp.onreadystatechange = function() {
 
 }
   
-//xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-//xhttp.send();
+xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
+xhttp.send();
 
 var GetSeasonData = new XMLHttpRequest();
 GetSeasonData.onreadystatechange = function()
@@ -58,8 +66,8 @@ GetSeasonData.onreadystatechange = function()
     
   }
 }
-//GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
-//GetSeasonData.send();
+GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
+GetSeasonData.send();
 
 function SortDataForGraph(Data)
 {
@@ -120,25 +128,30 @@ function F1_DriverStandings() {
   
   return (
     ((Drivers != undefined) && (Response != undefined) && (driverNames != undefined)) && (
-      <div>
-        <div>
-          <div>
-            <h1>Driver Standings</h1>
+    <div className = "BkrdWrapper">
+      <div className='MainBody'>
+        <h1>Driver Standings</h1>
+        <div className='AlignItems'>
+          
+          <div className='DriversStandings'>
+            
             <table>
-              <tbody>
-              <tr>
-                <th>Driver Name</th>
-                <th>Driver Position</th>
-                <th>Driver Points</th>
-              </tr>
               
+                <thead>
+                  <tr>
+                    <th>Driver Name</th>
+                    <th>Driver Position</th>
+                    <th>Driver Points</th>
+                  </tr>
+                </thead>
+                <tbody>
                 {Drivers.map((Drivers, index) => (
                   
                     <tr key = {index}>
                       
-                      <th>{Drivers.name}</th>
-                      <th>{Drivers.position}</th>
-                      <th>{Drivers.points}</th>
+                      <td>{Drivers.name}</td>
+                      <td>{Drivers.position}</td>
+                      <td>{Drivers.points}</td>
                       
                     </tr>
                 
@@ -147,69 +160,77 @@ function F1_DriverStandings() {
 
                 </tbody>
               </table>
-            </div>
-            <div>
-              
-               {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
-              <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Drivers}>
-                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
-             
-                <Bar dataKey = "points" fill="#8884d8" />
-              
-                <RechartsDevtools />
-              </BarChart>
-            </div>
-            <div>
-              <LineChart
-                style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
-                responsive
-                data={Drivers_Over_Season}
-                margin={{
-                  top: 5,
-                  right: 0,
-                  left: 0,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
-                
-                <XAxis dataKey="timestamp" angle={-45}/>
-              
-                <Tooltip />
-                 
-                {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
-                  <Line
-                    key={driver}
-                    type="monotone"
-                    dataKey={driver}
-                    
-                  />
-                ))}
-                
-              <RechartsDevtools />
-            </LineChart>
-            </div>
-            
           </div>
+          <div className='AlignCharts'>
+            <div>
+                
+                {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
+                <BarChart layout="vertical" style = {{width: '100%', aspectRatio: 1.618, minHeight: 800,maxWidth: 800}} responsive data={Drivers} margin={{left: 150}}>
+                  <YAxis type="category" dataKey="name" interval={0} angle={-0}  tick={({ x, y, payload }) => (
+        <text x={x} y={y} textAnchor="end" dominantBaseline="middle">
+          {payload.value}
+        </text>
+      )} />
+                  <XAxis dataKey="points" type="number" angle={-0} />
+                  <Bar dataKey = "points" fill="#8884d8" />
+                  
+                  <RechartsDevtools />
+                </BarChart>
+            </div>
+            <div>
+                <LineChart
+                  style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
+                  responsive
+                  data={Drivers_Over_Season}
+                  margin={{
+                    top: 20,
+                    right: 40,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                  
+                  <XAxis dataKey="timestamp" angle={-45}/>
+                
+                  <Tooltip />
+                  
+                  {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                    <Line
+                      key={driver}
+                      type="monotone"
+                      dataKey={driver}
+                      
+                    />
+                  ))}
+                  
+                <RechartsDevtools />
+              </LineChart>
+            </div>
+          </div>
+        </div>
           
         <div>
-          <div>
+          <h1>Team Standings</h1>
+          <div className='AlignItems'>
+          <div className='DriversStandings'>
         
-            <h1>Team Standings</h1>
+            
             <table>
-              <tbody>
+              <thead>
               <tr>
                 <th>Team Name</th>
                 <th>Team Points</th>
                 
               </tr>
-              
+              </thead>
+                  <tbody>
                 {Teams != undefined && Teams.map((Teams, index) => (
                   
                     <tr key = {index}>
                       
-                      <th>{Teams.name}</th>
-                      <th>{Teams.points}</th>
+                      <td>{Teams.name}</td>
+                      <td>{Teams.points}</td>
                     
                       
                     </tr>
@@ -219,48 +240,54 @@ function F1_DriverStandings() {
               </tbody>
             </table>
           </div>
-          <div>
-             <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams}>
-              <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
-             
-              <Bar dataKey = "points" fill="#8884d8" />
-              
-              <RechartsDevtools />
-            </BarChart>
-          </div>
-          <div>
-            <LineChart
-                style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
-                responsive
-                data={Teams_Over_Season}
-                margin={{
-                  top: 5,
-                  right: 0,
-                  left: 0,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+          <div className='AlignCharts'>
+            <div>
+              <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams} margin={{bottom: 80,left: 80}}>
+                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
+                <YAxis dataKey="points" label = {{value: "Points Total", position: "left", offset: 10, angle: -90}} />
+                <Bar dataKey = "points" >
+                 {Teams.map(driver => (
+                    <Cell key = {driver.name} fill={TeamColours[driver.name]} />
+                  ))}
+                  </Bar>
+                <RechartsDevtools />
+              </BarChart>
+            </div>
+            <div>
+              <LineChart
+                  style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
+                  responsive
+                  data={Teams_Over_Season}
+                  margin={{
+                    top: 20,
+                    right: 40,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                  
+                  <XAxis dataKey="timestamp" angle={-45}/>
                 
-                <XAxis dataKey="timestamp" angle={-45}/>
-              
-                <Tooltip />
-                 
-                {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
-                  <Line
-                    key={driver}
-                    type="monotone"
-                    dataKey={driver}
-                    
-                  />
-                ))}
-                
-              <RechartsDevtools />
-            </LineChart>
+                  <Tooltip />
+                  
+                  {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                    <Line
+                      key={driver}
+                      type="monotone"
+                      dataKey={driver}
+                      stroke = {TeamColours[driver]}
+                    />
+                  ))}
+                  
+                <RechartsDevtools />
+              </LineChart>
+            </div>
           </div>
         </div>
-      
+        </div>
       </div>
+    </div>
       
     )
     

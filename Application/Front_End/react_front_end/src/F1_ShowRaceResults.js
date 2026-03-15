@@ -57,8 +57,8 @@ function F1_ShowRaceResults() {
     <>
     {data && data.length > 0 && (
     <div>
-      <h1>Race Data</h1>
-      <table>
+      <h1 className='HistoricalData'>Race Data</h1>
+      <table className='HistoricalData'>
               <tbody>
               <tr>
                 <th>Driver Name</th>
@@ -70,7 +70,7 @@ function F1_ShowRaceResults() {
                 
               </tr>
               
-                {Object.values(data).map((rows, index) => (
+                {Object.values(data).sort().map((rows, index) => (
                   
                     <tr key = {index}>
                       
