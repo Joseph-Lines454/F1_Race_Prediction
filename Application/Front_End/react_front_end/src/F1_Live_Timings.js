@@ -15,7 +15,7 @@ function F1_Live_Timings() {
   /*Object.values(assigndata(event.data))*/
  
    return (
-    <div>
+    <div className='MainBody'>
       <h1>We are using console.log for now</h1>
     </div>
     

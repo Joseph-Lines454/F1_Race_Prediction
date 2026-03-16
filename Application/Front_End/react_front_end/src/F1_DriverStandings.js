@@ -20,8 +20,33 @@ var xhttp = new XMLHttpRequest();
 let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "orange","haas": "lightgray", "red bull racing": "lightblue","racing bulls" :"darkyellow","alpine": "lightpink","Audi": "silver","Williams": "dark blue","Cadillac" : "black", "aston martin": "darkgreen"}
 //Driver Colours here
 
-function AssignColoursGraph () {
-  //Assign Colours By Team
+let DriverColoursGraph = {};
+
+function AssignDriverColours(DriversLen, Drivers){
+  //Random colours function
+  let array = []
+  console.log(DriversLen)
+  for (let i = 0; i < DriversLen; i++)
+  {
+    let num1 = Math.floor(Math.random() * (255 - 1 + 1)) + 1;
+    let num2 = Math.floor(Math.random() * (255 - 1 + 1)) + 1;
+    let num3 = Math.floor(Math.random() * (255 - 1 + 1)) + 1;
+    
+
+    num1 = num1.toString(16).padStart(2, '0')
+    num2 = num2.toString(16).padStart(2, '0')
+    num3 = num3.toString(16).padStart(2, '0')
+    array[i] = "#" + num1 + num2 + num3
+  }
+  DriverColoursGraph = Object.values(DriverColoursGraph)
+  for(let i = 0; i < DriversLen; i++)
+  {
+    Drivers[i].colour = array[i]
+    DriverColoursGraph[Drivers[i].name] = array[i]
+   
+  }
+  return Drivers
+
 }
 
 xhttp.onreadystatechange = function() {
@@ -37,7 +62,8 @@ xhttp.onreadystatechange = function() {
     Drivers.sort(function(a,b){
       return b.points - a.points
     })
-   
+    Drivers = AssignDriverColours(Object.keys(Drivers).length, Drivers)
+    console.log("Drivers Colour: " + Drivers[0].colour)
     ValidPrint = true;
 
   }
@@ -118,6 +144,9 @@ function SortDataForGraph(Data)
 
 //We can make charts showing the changes in the championship
 
+//We need to assign random colours to the drivers in the graphs
+
+
 let driverNames = undefined
 function F1_DriverStandings() {
   //websocket.send("HelloooooAhhhhh")
@@ -165,34 +194,42 @@ function F1_DriverStandings() {
             <div>
                 
                 {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
-                <BarChart layout="vertical" style = {{width: '100%', aspectRatio: 1.618, minHeight: 800,maxWidth: 800}} responsive data={Drivers} margin={{left: 150}}>
+                <BarChart className='BarChartStyle' layout="vertical" style = {{width: '100%', aspectRatio: 1.618, minHeight: 800,maxWidth: 800}} responsive data={Drivers} margin={{left: 150, bottom: 60, top: 60, right: 150}}>
+                  <text y = {30} x = {400} dominantBaseline="central">Driver Points</text>
                   <YAxis type="category" dataKey="name" interval={0} angle={-0}  tick={({ x, y, payload }) => (
         <text x={x} y={y} textAnchor="end" dominantBaseline="middle">
           {payload.value}
         </text>
-      )} />
-                  <XAxis dataKey="points" type="number" angle={-0} />
-                  <Bar dataKey = "points" fill="#8884d8" />
+      )} label = {{value: "Driver Name", position: "left", offset: 100, angle: -90}} />
+                  <XAxis dataKey="points" type="number" angle={-0} label = {{value: "Points", position: "bottom", offset: 20}} />
+                  
+                  <Bar dataKey = "points">
+                    <Tooltip trigger="item" />
+                  {Object.values(Drivers).map((value,index) => (
+                    <Cell key = {index} fill = {value.colour} />
+                  ))}
+                  </Bar>
                   
                   <RechartsDevtools />
                 </BarChart>
             </div>
             <div>
-                <LineChart
+                <LineChart className='BarChartStyle'
                   style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
                   responsive
                   data={Drivers_Over_Season}
                   margin={{
-                    top: 20,
+                    top: 40,
                     right: 40,
-                    left: 20,
-                    bottom: 20,
+                    left: 40,
+                    bottom: 40,
                   }}
                 >
+                  <text y = {30} x = {350} dominantBaseline="central">Drivers Points Progression over season</text>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
-                  
-                  <XAxis dataKey="timestamp" angle={-45}/>
-                
+                  <Legend verticalAlign= "bottom" align="left"  layout = "horizontal" wrapperStyle = {{height: '120px',fontSize: '12px',width: '2500px',  display: 'flex', alignItems: 'center', paddingTop: '40px'}} />
+                  <XAxis dataKey="timestamp" label = {{value: "Date", position: "bottom", offset: 20}} angle={0}/>
+                  <YAxis label = {{value: "Drivers", position: "left", offset: 20, angle: -90}} />
                   <Tooltip />
                   
                   {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
@@ -200,7 +237,7 @@ function F1_DriverStandings() {
                       key={driver}
                       type="monotone"
                       dataKey={driver}
-                      
+                      stroke = {DriverColoursGraph[driver]}
                     />
                   ))}
                   
@@ -242,9 +279,11 @@ function F1_DriverStandings() {
           </div>
           <div className='AlignCharts'>
             <div>
-              <BarChart style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams} margin={{bottom: 80,left: 80}}>
-                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" />
-                <YAxis dataKey="points" label = {{value: "Points Total", position: "left", offset: 10, angle: -90}} />
+              <BarChart className='BarChartStyle' style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams} margin={{bottom: 80,left: 80, top: 80, right: 80}}>
+                 <text y = {30} x = {250} dominantBaseline="central">Teams Points</text>
+                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" label = {{value: "Teams", position: "bottom", offset: 20}} />
+                <YAxis dataKey="points" label = {{value: "Points Total", position: "left", offset: 30, angle: -90}} />
+                <Tooltip trigger="item" />
                 <Bar dataKey = "points" >
                  {Teams.map(driver => (
                     <Cell key = {driver.name} fill={TeamColours[driver.name]} />
@@ -254,30 +293,34 @@ function F1_DriverStandings() {
               </BarChart>
             </div>
             <div>
-              <LineChart
+              <LineChart className='BarChartStyle'
                   style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
                   responsive
                   data={Teams_Over_Season}
                   margin={{
-                    top: 20,
+                    top: 80,
                     right: 40,
-                    left: 20,
-                    bottom: 20,
+                    left: 40,
+                    bottom: 40,
                   }}
                 >
+                  <text y = {30} x = {350} dominantBaseline="central">Teams Points Progression over season</text>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
                   
-                  <XAxis dataKey="timestamp" angle={-45}/>
-                
+                  <XAxis label = {{value: "Date", position: "bottom", offset: 0, angle: 0}} dataKey="timestamp" angle={0}/>
+                  <YAxis label = {{value: "Points", position: "left", offset: 0, angle: -90}}/>
+                  <Legend verticalAlign= "middle" align="left"  layout = "vertical" wrapperStyle = {{height: '400px',fontSize: '12px',width: '100px',  display: 'flex', alignItems: 'center'}} />
                   <Tooltip />
-                  
                   {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                    
                     <Line
                       key={driver}
                       type="monotone"
                       dataKey={driver}
                       stroke = {TeamColours[driver]}
+                      
                     />
+                    
                   ))}
                   
                 <RechartsDevtools />

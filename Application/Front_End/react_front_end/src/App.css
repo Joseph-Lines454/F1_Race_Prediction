@@ -40,8 +40,13 @@
   padding-right: 10px;
   display: flex;
   margin: auto;
-  width: 60%;
+  width: 50%;
+  justify-content: center;
   height: 100%;
+
+}
+
+.AlignBarChartsHistorical {
 
 }
 
@@ -52,8 +57,9 @@ table th, td {
 
 .HistoricalData {
   display: flex;
+  margin: auto;
   justify-content: center;
-  
+  width: 50%;
 }
 
 .rows {
@@ -70,6 +76,13 @@ table th, td {
 }
 .AlignCharts {
   padding: 20px;
+}
+
+.AlignHistoricalCharts {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
 
@@ -122,7 +135,12 @@ ul
   color: black;
 }
 
-
+.BarChartStyle {
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  background: white;
+  margin-bottom: 60px;
+}
 
 .NoData {
   display: flex;

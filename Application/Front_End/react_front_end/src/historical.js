@@ -38,12 +38,7 @@ function Historical() {
     }
 
   }
-  const Redirect = () => {
-    
-    
-
-  }
-
+  
   const GetHistoricalData = (season) => {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -97,7 +92,7 @@ function Historical() {
   }
 
   return (
-    <div>
+    <div className='MainBody'>
       <div className = "FindSeason">
         <div className="dropdown">
           <button className="ButtonDis">Select Season</button>
