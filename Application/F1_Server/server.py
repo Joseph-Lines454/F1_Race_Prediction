@@ -82,12 +82,13 @@ headers = {
 
 
 
-clientDatabase = MongoClient()
+#clientDatabase = MongoClient()
 
 #Get the current year
 Year = date.today().year
 
-clientDatabase = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
+#clientDatabase = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
+clientDatabase = MongoClient("mongodb://host.docker.internal:27017/")
 newdatabase = clientDatabase["Drivers"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
 Races = newdatabase['Races']
@@ -488,17 +489,12 @@ def root(Data: GetRaceR):
 
 @app.post("/Historical")
 async def root(Data: SeasonYearData):
-  #await GetTeams()
-  #await GetRaceResults()
-  
-  #await WebsocketSend_Test()
-  #await GetRaceResults()
   """
   PresentQualifyingData({'meeting_key': 1280, 'session_key': 11236, 'driver_number': 18, 'lap_number': 2, 'date_start': '2026-03-13T07:32:44.269000', 'duration_sector_1': 25.675, 'duration_sector_2': 30.157, 'duration_sector_3': 42.546, 'i1_speed': 277, 'i2_speed': 267, 'is_pit_out_lap': False, 'lap_duration': 98.378, 'segments_sector_1': [2049, 2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_2': [2049, 2049, 2049, 2049, 2049, 2049], 'segments_sector_3': [2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049, 2049], 'st_speed': 310, '_key': '11236_2_18', '_id': 1773387264612})
   
   PresentQualifyingData( {'meeting_key': 1280, 'session_key': 11236, 'date': '2026-03-13T07:59:00.269000+00:00', 'driver_number': None, 'lap_number': None, 'category': 'SessionStatus', 'flag': None, 'scope': None, 'sector': None, 'qualifying_phase': 2, 'message': 'SESSION FINISHED', '_key': '1773388740269_None_None_SessionStatus_None_None_None', '_id': 1773388742443})
   """
- 
+  
 
   #Get the data based on the year
   x = list(Races.find({'season': Data.year}))
@@ -533,3 +529,14 @@ def root():
   #await WebsocketSend_Test()
   print("We have reached test")
   GetCurrentSessionsData()
+
+@app.get("/F1_Race_Predictions")
+def root():
+  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/260d5205-5003-4038-a392-f23c4f57e6b4/qualifying/876071c4-9bce-4660-b183-7f266b6a5036/results", headers=headers)
+
+  #c0c47b04-21d3-4765-c8fa-08d94ab130d2
+  data  = response.json()
+  print(data)
+  return "We have successfully Quried the other server!!!"
+
+  

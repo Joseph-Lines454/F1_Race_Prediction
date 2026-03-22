@@ -15,7 +15,7 @@ services:
        
     stdin_open: true
     tty: true
-    container_name: Front_End_test
+    container_name: Front_End_test_2
     
   web:
     #image: node:24.12.0
@@ -40,15 +40,9 @@ services:
     working_dir:  /usr/app/src
     ports:
       - "8001:8001"
+    container_name: F1_Server_2
 
     #command: python3 server.py
-  redis:
-    image: "redis:alpine"
-       
-    stdin_open: true
-    tty: true
-    container_name: F1_Server
-
 
 
   database:
@@ -61,5 +55,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: username
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_URL: mongodb://username:password@database:27017/users?authSource=admin
-  
+    container_name: Database_2
+  ml-service:
+    build:
+      context: .
+      dockerfile: ML_Model/Dockerfile
+    volumes:
+        - ./ML_Model:/usr/app/src
+    working_dir:  /usr/app/src
+    ports:
+      - "2000:2000"
+    container_name: ml_model
     
