@@ -87,6 +87,9 @@ def GetWeatherForcast(FindWeather):
 #Function that gets the data
 
 GetWeatherForcast(GetCircuitsAndDates())
+
 JoinData()
 
-
+#WeatherData = requests.get("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline" + "/" + str("-37.8497") + "," + str("144.968") + "/" + str("2026-03-08") + "T" + str("05:00:00") + "?key=HAWRLDPJJULW8C79XWHQGZP2F&include=current")
+#WeatherData = json.loads(WeatherData.text)
+#print(WeatherData.text)

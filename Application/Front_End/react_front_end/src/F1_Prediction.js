@@ -14,7 +14,7 @@ function F1_Prediction() {
       
     }
   }
-  GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Race_Predictions",true)
+  GetSeasonData.open("GET","http://127.0.0.1:2000/MLModelPerformance",true)
   GetSeasonData.send();
 
 

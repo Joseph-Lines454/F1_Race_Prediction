@@ -15,6 +15,9 @@ import paho.mqtt.client as mqtt
 import ssl
 from urllib.request import urlopen
 import json
+import requests
+import aiohttp
+import os
 #CONNECTION MANAGER TO ALLOW FOR OUR WEBSOCEKTS TO BE USED
 
 app = FastAPI()
@@ -32,6 +35,23 @@ app.add_middleware(
     allow_headers=["*"]
     )
 
+
+
+
+#Check if the data is live somehow - make a request and see the status of the session
+
+
+
+RAPIDAPI = http.client.HTTPSConnection("f1-live-pulse.p.rapidapi.com")
+headersLIVE = {
+    'x-rapidapi-key': "6d3141966dmsh933f874f2dc3823p144d62jsn81e5fa2d240f",
+    'x-rapidapi-host': "f1-live-pulse.p.rapidapi.com",
+    'Content-Type': "application/json"
+    }
+
+
+async def Run():
+  print()
 
 class ConnectionManager:
   def __init__(self):
@@ -65,11 +85,13 @@ paramsLive_Telem = {
 response_F1= requests.post(token_url,data=paramsLive_Telem)
 
 #This is working
+
 if response_F1.status_code == 200:
   response = response_F1.json()
   access_token = response["access_token"]
 else:
-  print(response_F1.text)
+  #print(response_F1.text)
+  print(None)
 
 #Hyprace is going to be used for everything else
 
@@ -108,10 +130,12 @@ def on_connect(client, userdata, flags, rc, properties = None):
         #client.subscribe("v1/laps")
         client.subscribe("v1/laps")
         client.subscribe("v1/race_control")
-        client.subscribe("v1/car_telemetry")
+        client.subscribe("v1/sessions")
+        client.subscribe("v1/overtakes")
         print(client.subscribe("v1/laps"))
         print(client.subscribe("v1/race_control"))
-        print(client.subscribe("v1/car_telemetry"))
+        print(client.subscribe("v1/sessions"))
+        print(client.subscribe("v1/overtakes"))
         #client.subscribe("#")
   else:
     print(f"Failed to connect, return code {rc}")
@@ -119,34 +143,21 @@ def on_connect(client, userdata, flags, rc, properties = None):
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
 
 SessionType = ""
+output_file = "/usr/app/src/live_data.jsonl"
+os.makedirs(os.path.dirname(output_file), exist_ok=True)
 def on_message(client,userdata,msg):
+
   #global SessionType
   print("We have recived a message for OpenF1 API!!!")
   data = json.loads(msg.payload.decode())
   topic = msg.topic
   print(data)
+  jsondata = {"topic" : topic, "data": data}
+  with open(output_file, "a") as f:
+    f.write(json.dumps(jsondata))
 
   #Get the session type based on the ID for the live timings
-  """
-  if SessionType == "":
-    response = requests.get(f"https://api.openf1.org/v1/sessions?session_key={data["session_key"]}",headers={"Authorization": f"Bearer {access_token}"})
-    data2 = response.json()
-    print(data2)
-    SessionData.delete_many({})
-    SessionType = data2[0]["session_name"]
-  if SessionType == "Sprint Qualifying" or SessionType == "Qualifying":
-    PresentQualifyingData(data)
-  if SessionType == "Practice 1" or SessionType == "Practice 2" or SessionType == "Practice 3":
-    PresentPracticeData()
-
-  if SessionType == "Main Race":
-    print(data)
-
-  print(SessionType)
-  #Check what the actual thing is for this
-  #if SessionType == "Race Sprint":
-    #PresentRace_Data(data)
-  """
+ 
   SendData({"topic": topic, "data" : data})
 #def PresentRace_Data(RaceData):
 
@@ -304,13 +315,13 @@ async def GetRaceResults():
           else:
             items = {"Raceid" : item["Raceid"],"Eventid": item["Eventid"], "Driverid" : individual_results["driverId"], "Teamid" : individual_results["teamId"], "FinishedPostion" : individual_results["result"]["finishedPosition"], "Finaltime": "N/A","points": individual_results["result"]["points"],"laps": individual_results["result"]["laps"],"gapToLeader": "N/A" }
             myList.append(items)
-          print(items) 
+          #print(items) 
           
 
       
     
   xin = RaceResults.insert_many(myList)
-  print("Indatabase")
+  #print("Indatabase")
     
        
   
@@ -394,7 +405,7 @@ async def CheckAPIStrings():
   print("Right place")
   #c0c47b04-21d3-4765-c8fa-08d94ab130d2
   data  = response.json()
-  print(data)
+  #print(data)
 
   
   #print(response.json())
@@ -406,8 +417,12 @@ class GetRaceR(BaseModel):
 class SeasonYearData(BaseModel):
   year: int
 
+
+
+
 @app.on_event("startup")
-def startup_mqtt():
+async def startup_mqtt():
+  
   try:
     client.connect(mqtt_broker, mqtt_port, 60)
     client.loop_start()
@@ -416,7 +431,12 @@ def startup_mqtt():
     print("MQTT connection started")
   except Exception as e:
         print("MQTT failed:", e)
-
+  
+  #responsea = requests.get(f"https://hyprace-api.p.rapidapi.com/timingData", headers=headers)
+  #response = responsea.json()
+  #if (response["sessionStatus"] != "Ends"):
+  #  asyncio.run(RaceRunning)
+  #asyncio.create_task(poll_hyprace())
 @app.get("/F1_Statistics")
 async def root():
 
@@ -466,9 +486,7 @@ async def WebsocketSend_Test():
     print("No loop")
 
 
-def GetRaceResults():
-  print("Getting race results here...")
-  #we have the id associated with races, we can use it 
+
 
 @app.post("/GetData")
 def root(Data: GetRaceR):
@@ -483,7 +501,7 @@ def root(Data: GetRaceR):
     DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "colour" : TN["color"], "points": d["points"]  }
     
     myList.append(DriverData)
-    print(d)
+    #print(d)
 
   return myList
 
@@ -515,7 +533,9 @@ async def websocket_endpoint(websocket:WebSocket):
     await websocket.accept()
     manager.active_connections.append(websocket)
     while True:
+        print("Here!!adwdw")
         data = await websocket.receive_text()
+        
         await websocket.send_text(f"Message text was {data}")
   except:
      manager.active_connections.remove(websocket)
@@ -527,7 +547,7 @@ def root():
   #await GetRaceResults()
   
   #await WebsocketSend_Test()
-  print("We have reached test")
+  #print("We have reached test")
   GetCurrentSessionsData()
 
 @app.get("/F1_Race_Predictions")
@@ -537,6 +557,7 @@ def root():
   #c0c47b04-21d3-4765-c8fa-08d94ab130d2
   data  = response.json()
   print(data)
+  #print(data)
   return "We have successfully Quried the other server!!!"
 
   

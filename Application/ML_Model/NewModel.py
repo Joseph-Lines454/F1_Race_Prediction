@@ -28,7 +28,7 @@ def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val)
     optimizer.step()
     #Essentily converts outputs to proabilities, then argmax gets the highest one and we get the F1 score.
     f1_score_a = f1_score(torch.argmax(torch.softmax(x_trained, dim=1), dim=1), y_train, average="micro")
-    #print(f1_score_a)
+    print(f1_score_a)
     if epoch % 50 == 0:
       print("Epoch " + str(epoch) + " Training Loss " + str(loss.item()))
 
@@ -72,7 +72,11 @@ class F1_Race_Prediction(nn.Module):
 
 def DataPrepANDRunModel():
   GetData = pl.read_csv("F1_Data/Prerace_Prediction.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
-  GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Float64, "Result": pl.Int64,"resultId": pl.Int64, "grid": pl.Int64, "final_race_pos": pl.Int64,"points": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Finished_Race": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,"race_time_hr": pl.Int64})
+
+
+  GetData = GetData.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical())
+  GetData = GetData.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical())
+  GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "Result": pl.Int64,"resultId": pl.Int64, "grid": pl.Int64, "final_race_pos": pl.Int64,"points": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Finished_Race": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,"race_time_hr": pl.Int64})
   #Splitting values between expected outcome as well as the data which is used to predict the race.
 
   #Exclude DNF's for now
@@ -84,6 +88,12 @@ def DataPrepANDRunModel():
 
   #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
   print(len(GetData))
+  dataLen = len(GetData)
+
+  Train = int(int(dataLen) * 0.7)
+  Test = dataLen - Train
+  print("Train",Train)
+  print("Test",Test)
   y = GetData.select(['race_f']).to_numpy()
   x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f'])).to_numpy()
 
@@ -108,10 +118,15 @@ def DataPrepANDRunModel():
   x = torch.cat((x, embed), dim=1)
 
   #Now we need these in seperate tensors
-  row_split_check_x = torch.split(x,[3589,1539],dim=0)
+
+  #We need to make this dynamic
+
+
+
+  row_split_check_x = torch.split(x,[Train,Test],dim=0)
   test_x, validate_x = row_split_check_x
 
-  row_split_check_y = torch.split(y,[3589,1539],dim=0)
+  row_split_check_y = torch.split(y,[Train,Test],dim=0)
   test_y, validate_y = row_split_check_y
 
   test_y, validate_y = row_split_check_y
@@ -149,7 +164,7 @@ def DataPrepANDRunModel():
   optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
   #Training and Validating our model
-  TrainModel(200,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
+  TrainModel(190,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
 
 app = FastAPI()
@@ -176,14 +191,7 @@ async def root():
 
 
   print("Hello World!!!")
-  #DataPrepANDRunModel()
-
-  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/260d5205-5003-4038-a392-f23c4f57e6b4/qualifying", headers=headers)
-
-  print("Right place")
-  #c0c47b04-21d3-4765-c8fa-08d94ab130d2
-  data  = response.json()
-  print(data)
+  DataPrepANDRunModel()
 
 
   return "Hello World!! + We have queried the oher model/webserver correctly!!!"

@@ -13,13 +13,10 @@ GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" :
 
 #Exclude DNF's for now
 
+#This needs to be changed so any values after 2026 are classed differently
 GetData = GetData.filter(pl.col('final_race_pos') != 0)
 GetData = GetData.with_columns(pl.when(pl.col("final_race_pos") <= 3).then(0).when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(1).when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(2).when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(3).alias('race_f'))
-#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(2).alias('race_f'))
-#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(3).alias('race_f'))
-#24 because 2012 had less drivers.
-#GetData = GetData.with_columns(pl.when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(4).alias('race_f'))
-#we need to define 
+
 
 #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
 print(len(GetData))
@@ -112,7 +109,7 @@ print("Val_X")
 print(validate_x)
 print("Val_Y")
 print(validate_y)
-device = torch.accelerator.current_accelerator().type
+#device = torch.accelerator.current_accelerator().type
 #converting our data to tensors from numpy once we have split the data
 
 
