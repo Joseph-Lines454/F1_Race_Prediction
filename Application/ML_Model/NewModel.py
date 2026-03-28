@@ -7,49 +7,18 @@ from sklearn.metrics import f1_score
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import requests
+import joblib
 #We still need to do some pre-proccessing to the data - For qualifying data we need to use an arbitary value with out binary indicator flag (Reached Q2 ect)
 #Values also need to be encoded because some are in string formats which ML models do not like
 
-#Trainning model for our data
-def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val):
-  for epoch in range (1, epochs + 1):
-    model.train()
-    optimizer.zero_grad()
-    x_trained = model(x_train)
-    loss = loss_fn(x_trained,y_train)
-    
-    #Reset gradiant back to zero so gradient does not accumulate
-    #Backpropagation
-    loss.backward()
 
 
-    #print(optimizer.grad.norm())
-    y_train.detach()
-    optimizer.step()
-    #Essentily converts outputs to proabilities, then argmax gets the highest one and we get the F1 score.
-    f1_score_a = f1_score(torch.argmax(torch.softmax(x_trained, dim=1), dim=1), y_train, average="micro")
-    print(f1_score_a)
-    if epoch % 50 == 0:
-      print("Epoch " + str(epoch) + " Training Loss " + str(loss.item()))
-
-
-
-     
-    #We dont want to calculate gradiant becuase we are not improving the model, we are validating our data
-    with torch.no_grad():
-      model.eval()
-      x_validate = model(x_val)
-      #Checking loss on out data
-      loss = loss_fn(x_validate,y_val)
-      #print The loss if epoch is equal to 50
-      if epoch % 50 == 0:
-        print("Epoch " + str(epoch) + " Validation Loss " + str(loss.item()))
      
 
 class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
-    self.Input1 = nn.Linear(29, 136)
+    self.Input1 = nn.Linear(28, 136)
     self.relu1 = nn.Tanh()
     self.Input2 = nn.Linear(136, 136)
     self.relu2 = nn.Tanh()
@@ -71,34 +40,38 @@ class F1_Race_Prediction(nn.Module):
 
 
 def DataPrepANDRunModel():
-  GetData = pl.read_csv("F1_Data/Prerace_Prediction.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
+  GetData = [[1170,"5d86760d-5842-4ca1-214d-08d9161fe7c5",11111,"d5802ec3-7d45-4b65-b83b-fbb496f87b2d",2,2026,2,17,"08/03/2026",31.3389,121.22,75.8,54.4,63.9,75.8,54.4,0,0,0,18.8,169.6,60,1,1,1,1,1,79435,78811,80120,5]]
 
+  GetData = pl.DataFrame(GetData, schema=["raceId",	"driverId","qualifyId","constructorId","grid","year","Race_round","circuitId","date","lat","lng","tempmax","tempmin","temp","dew","humidity",	"precip",	"snow",	"snowdepth","windspeed","winddir","cloudcover","ReachedQ2","ReachedQ3","Finished Race","SetQ1Time","Finished_Race","Q2_Millsec","Q3_Millsec","Q1_Millsec","race_time_hr"
+
+  ])
 
   GetData = GetData.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical())
   GetData = GetData.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical())
-  GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "Result": pl.Int64,"resultId": pl.Int64, "grid": pl.Int64, "final_race_pos": pl.Int64,"points": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Finished_Race": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,"race_time_hr": pl.Int64})
+  GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "grid": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "winddir": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Finished_Race": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,"race_time_hr": pl.Int64})
   #Splitting values between expected outcome as well as the data which is used to predict the race.
 
   #Exclude DNF's for now
 
   #This needs to be changed so any values after 2026 are classed differently
-  GetData = GetData.filter(pl.col('final_race_pos') != 0)
-  GetData = GetData.with_columns(pl.when(pl.col("final_race_pos") <= 3).then(0).when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(1).when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(2).when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(3).alias('race_f'))
+  #GetData = GetData.filter(pl.col('final_race_pos') != 0)
+  #GetData = GetData.with_columns(pl.when(pl.col("final_race_pos") <= 3).then(0).when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(1).when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(2).when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(3).alias('race_f'))
 
 
   #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
   print(len(GetData))
   dataLen = len(GetData)
 
-  Train = int(int(dataLen) * 0.7)
-  Test = dataLen - Train
-  print("Train",Train)
-  print("Test",Test)
-  y = GetData.select(['race_f']).to_numpy()
+  #Train = int(int(dataLen) * 0.7)
+  #Test = dataLen - Train
+  #print("Train",Train)
+  #print("Test",Test)
+  #y = GetData.select(['race_f']).to_numpy()
+  #Might not need this as this is because we dont know these values.
   x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f'])).to_numpy()
 
   #For now lets replicate example with four classes instead of 20
-  y = torch.from_numpy(y)
+
   x = torch.from_numpy(x)
 
   #------ NEED TO ADD 3 EXTRA DIMENSIONS TO THE TENSOR AND PUSH THESE  -------
@@ -120,52 +93,53 @@ def DataPrepANDRunModel():
   #Now we need these in seperate tensors
 
   #We need to make this dynamic
+  model = F1_Race_Prediction()
+  scaler = joblib.load("scaler.pkl")
+  model.load_state_dict(torch.load("model.pth"))
 
+  
+  #We can get rid of this because no training and testing split
+  #row_split_check_x = torch.split(x,[Train,Test],dim=0)
+  #test_x, validate_x = row_split_check_x
 
+  #row_split_check_y = torch.split(y,[Train,Test],dim=0)
+  #test_y, validate_y = row_split_check_y
 
-  row_split_check_x = torch.split(x,[Train,Test],dim=0)
-  test_x, validate_x = row_split_check_x
+  #test_y, validate_y = row_split_check_y
 
-  row_split_check_y = torch.split(y,[Train,Test],dim=0)
-  test_y, validate_y = row_split_check_y
-
-  test_y, validate_y = row_split_check_y
-
-  test_x = test_x.to(torch.float32)
-  validate_x = validate_x.to(torch.float32)
+  #test_x = test_x.to(torch.float32)
+  #validate_x = validate_x.to(torch.float32)
   #For some reason these are 2D but want it to be 1D
-  test_y = test_y.to(torch.long).squeeze(1)
-  validate_y = validate_y.to(torch.long).squeeze(1)
+  #test_y = test_y.to(torch.long).squeeze(1)
+  #validate_y = validate_y.to(torch.long).squeeze(1)
 
-  test_x = test_x.detach().numpy()
-  temp1 = MinMaxScaler().fit(test_x)
-  test_x = temp1.transform(test_x)
-  test_x = torch.from_numpy(test_x)
+  x = x.detach().numpy()
 
-  test_x = test_x.detach()
+  x = scaler.transform(x)
+  x = torch.from_numpy(x)
+  x = x.to(torch.float32)
+  #validate_x = validate_x.detach().numpy()
+  #temp2 = scaler.fit(validate_x)
+  #validate_x = temp2.transform(validate_x)
+  #validate_x = torch.from_numpy(validate_x)
 
-  validate_x = validate_x.detach().numpy()
-  temp2 = MinMaxScaler().fit(validate_x)
-  validate_x = temp2.transform(validate_x)
-  validate_x = torch.from_numpy(validate_x)
-
-  validate_x = validate_x.detach()
+  #validate_x = validate_x.detach()
   #device = torch.accelerator.current_accelerator().type
   #converting our data to tensors from numpy once we have split the data
 
-  model = F1_Race_Prediction()
-  print(model)
+  with torch.no_grad():
+    prediction = model(x)
 
-  #Need to define our loss functions as well as optimizers - This will change as we will need an appropriate loss function
-  loss_fn = torch.nn.CrossEntropyLoss()
+  print("Prediction is: " + str(prediction))
+  #We might need to change the last layer to softmax because the function being used has softmax built in
+  
 
-  #Leaning Rate - size of the steps the optimizer takes
-  #Momentum nudges the optimizer in the direction of the strongest gradiant over multiple steps.
-  optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-  #Training and Validating our model
-  TrainModel(190,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
+
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
+  #torch.save(model.state_dict(), "model.pth")
+  #joblib.dump(scaler, "scaler.pkl")
+
 
 app = FastAPI()
 
@@ -192,8 +166,7 @@ async def root():
 
   print("Hello World!!!")
   DataPrepANDRunModel()
-
-
+  
   return "Hello World!! + We have queried the oher model/webserver correctly!!!"
 
 #Data needs to have some pre-processing done to it

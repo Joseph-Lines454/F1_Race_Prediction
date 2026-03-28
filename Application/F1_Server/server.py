@@ -143,7 +143,7 @@ def on_connect(client, userdata, flags, rc, properties = None):
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
 
 SessionType = ""
-output_file = "/usr/app/src/live_data.jsonl"
+output_file = "/usr/app/src/live_data_qualifying.jsonl"
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
 def on_message(client,userdata,msg):
 
