@@ -27,7 +27,7 @@ class QualifyingData(BaseModel):
 class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
-    self.Input1 = nn.Linear(28, 136)
+    self.Input1 = nn.Linear(26, 136)
     self.relu1 = nn.Tanh()
     self.Input2 = nn.Linear(136, 136)
     self.relu2 = nn.Tanh()
@@ -44,7 +44,12 @@ class F1_Race_Prediction(nn.Module):
     out = self.relu2(out)
     out = self.Input4(out)
     #out = self.activitation(out)
-    return out
+    return torch.argmax(out, dim=1)
+
+def ConvertToMilliSeconds(time):
+  minutes, seconds = time.split(":")
+  total_time_in_ms = int(minutes) * 60 * 100 + float(seconds) * 1000
+  return int(total_time_in_ms)
 
 def WeatherDataRes(lat,lng,date):
   WeatherData = requests.get("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline" + "/" + str(lat) + "," + str(lng) + "/" + date + "?key=HAWRLDPJJULW8C79XWHQGZP2F&include=current")
@@ -52,7 +57,6 @@ def WeatherDataRes(lat,lng,date):
   
   WeatherData = json.loads(WeatherData.text)
   #We now need to get weather data
-  print(WeatherData)
   return WeatherData
 
 
@@ -74,39 +78,64 @@ def DataPrepANDRunModel(QualiData):
   
   data = [WeatherData['days'][0]['tempmax'], WeatherData['days'][0]['tempmin'], WeatherData['days'][0]['temp'],WeatherData['days'][0]['dew'],WeatherData['days'][0]['humidity'], WeatherData['days'][0]['precip'], WeatherData['days'][0]['snow'],WeatherData['days'][0]['snowdepth'],WeatherData['days'][0]['windspeed'],WeatherData['days'][0]['winddir'], WeatherData['days'][0]['pressure'],WeatherData['days'][0]['cloudcover'],WeatherData['days'][0]['visibility']]
 
+
+  WeatherData = {"tempmax": WeatherData['days'][0]['tempmax'], "tempmin": WeatherData['days'][0]['tempmin'], "temp":WeatherData['days'][0]['temp'], "dew" : WeatherData['days'][0]['dew'], "humidity": WeatherData['days'][0]['humidity'], "precip": WeatherData['days'][0]['precip'], "snow": WeatherData['days'][0]['snow'], "snowdepth": WeatherData['days'][0]['snowdepth'], "windspeed":WeatherData['days'][0]['windspeed'], "winddir": WeatherData['days'][0]['winddir'], "pressure": WeatherData['days'][0]['pressure'], "cloudcover": WeatherData['days'][0]['cloudcover'], 'visibility': WeatherData['days'][0]['visibility']}
+
+
   #Then we need to get the data - we need to get year out of that fuuck...
-  print(data)
+
 
   #Get Qualifying ID
-  QualifyingId = GetData["qualifyId"][-1]
-  FinalID = QualifyingId + len(QualiData)
+  QualifyingId = int(GetData["qualifyId"][-1])
 
-  RaceId = GetData["raceId"][-1] + 1
-  #need to check if value contains x then we do x
+  RaceId = int(GetData["raceId"][-1] + 1)
+  #Get Round
+  RaceRound = int(GetData["Race_round"][-1] + 1)
+
 
   MyList = []
   for item in QualiData:
-    #convert each qualitime into a milliseconds then get the ID
-    if "q3" in item:
+    #convert each qualitime into a milliseconds then get assign a onehot encoding value for each column
+    QualifyingId = QualifyingId + 1
+    #format date
+
+    #split the string into date and year, then with the date part [0] split it in year,month and date then reassemble using the other date format
+    year, month, day = item.date.split("T")[0].split("-")
+    finalDate = f"{year}"
+    # Have to get race time hr - Missing vairable
+    item = item.dict()
+    if item.get("q3") is not None:
+      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec": ConvertToMilliSeconds(item.get("q3")), "grid": item.get("position"), "circuitId": str(item.get("circuitId")),"year": str(finalDate),"ReachedQ3" : "1", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId), "lat": str(lat), "lng" :str(lng), "Race_round": str(RaceRound) }
+      items = items | WeatherData
+      MyList.append(items)
+
+    elif item.get("q2") is not None:
       
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" : str(item.get("q2")), "q3": str(item.get("q3")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"]) }
+      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" :  ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec" : -9999, "grid": item.get("position"), "circuitId": str(item.get("circuitId")),"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
+      items = items | WeatherData
+      MyList.append(items)
+
+
       #MyList.append(items)
-      
-    if "q2" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" :  str(item.get("q2")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
+    elif item.get("q1") is not None:
+      q1 = ConvertToMilliSeconds(str(item.get("q1")))
+      #Q2 needs to be inputted as -9999
+
+      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : -9999, "Q3_Millsec" : -9999, "grid": item.get("position"),"circuitId": str(item.get("circuitId")),"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "0", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
       #MyList.append(items)
-    if "q1" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "gridposition": str(item.get("position")),"circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
-      #MyList.append(items)
-    MyList.append(items)
+      items = items | WeatherData
+      MyList.append(items)
+  print(MyList)
 
-
-
-
-  GetData = GetData.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical())
-  GetData = GetData.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical())
-  GetData = GetData.with_columns(pl.col('circuitId').cast(pl.Categorical).to_physical())
-  GetData = GetData.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "grid": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "winddir": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Finished_Race": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,"race_time_hr": pl.Int64})
+  #We need to fix a bunch of columns
+  MyList = pl.DataFrame(MyList)
+  
+  #to_physical opperates my converted the UUID's into a scale from zero, adding 1000 means it does not get misinterpreted as another drivers id
+  MyList = MyList.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical() + 1000)
+  MyList = MyList.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical() + 1000)
+  MyList = MyList.with_columns(pl.col('circuitId').cast(pl.Categorical).to_physical() + 1000)
+  
+  MyList = MyList.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "grid": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "winddir": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64})
   #Splitting values between expected outcome as well as the data which is used to predict the race.
 
   
@@ -122,7 +151,7 @@ def DataPrepANDRunModel(QualiData):
 
   #Need to get the time as well as correct circuit from the data
 
-  """"
+
   #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
   print(len(GetData))
   dataLen = len(GetData)
@@ -133,24 +162,24 @@ def DataPrepANDRunModel(QualiData):
   #print("Test",Test)
   #y = GetData.select(['race_f']).to_numpy()
   #Might not need this as this is because we dont know these values.
-  x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f'])).to_numpy()
+  x = MyList.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
 
   #For now lets replicate example with four classes instead of 20
 
   x = torch.from_numpy(x)
-
+  print(len(MyList))
   #------ NEED TO ADD 3 EXTRA DIMENSIONS TO THE TENSOR AND PUSH THESE  -------
 
   #Embedding our RaceID
-  embedding = nn.Embedding(num_embeddings=5810, embedding_dim=1)
+  embedding = nn.Embedding(num_embeddings= 1000 + len(MyList), embedding_dim=1)
   #input shape from numpy is [5810,1] so with embedding_dim=1 makes it [5810,1,1]
-  embed = embedding(torch.from_numpy(GetData.select(['raceId']).to_numpy())).squeeze(1)
+  embed = embedding(torch.from_numpy(MyList.select(['raceId']).to_numpy())).squeeze(1)
 
   #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
   x = torch.cat((x, embed), dim=1)
   #Embedding our DriverID
-  embedding = nn.Embedding(num_embeddings=5810, embedding_dim=1)
-  embed = embedding(torch.from_numpy(GetData.select(['driverId']).to_numpy())).squeeze(1)
+  embedding = nn.Embedding(num_embeddings=1000 + len(MyList), embedding_dim=1)
+  embed = embedding(torch.from_numpy(MyList.select(['driverId']).to_numpy())).squeeze(1)
 
   #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
   x = torch.cat((x, embed), dim=1)
@@ -191,16 +220,14 @@ def DataPrepANDRunModel(QualiData):
   #validate_x = validate_x.detach()
   #device = torch.accelerator.current_accelerator().type
   #converting our data to tensors from numpy once we have split the data
-
+"""
   with torch.no_grad():
     prediction = model(x)
 
-  print("Prediction is: " + str(prediction))
-  #We might need to change the last layer to softmax because the function being used has softmax built in
-  """
-
   
 
+  print(prediction.shape)
+  """
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
   #torch.save(model.state_dict(), "model.pth")
   #joblib.dump(scaler, "scaler.pkl")
