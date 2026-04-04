@@ -559,37 +559,51 @@ def root():
 def root():
   #Get the event data, circuit data then we can map it and pass to the ML server
   #We are going to use the data from china - we need to get qualifying data
-  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/f1aa33c2-525e-4979-acd3-3fd137b4a619/qualifying/5d5a6b02-0330-46e2-9891-7aba8e1a5bf1/results", headers=headers)
+  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43/qualifying/83b18780-2a95-49ea-ab9e-75d9733b716a/results", headers=headers)
+  #print(response)
+
   
+
   data  = response.json()
-  response2 = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/f1aa33c2-525e-4979-acd3-3fd137b4a619", headers = headers)
+  response2 = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43", headers = headers)
   data2 = response2.json()
-  print(data2)
+  #print(data2)
   MyList = []
+  
   for item in data["results"]:
     
-    if "q3" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" : str(item.get("q2")), "q3": str(item.get("q3")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"]) }
-      #MyList.append(items)
-      
-    if "q2" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" :  str(item.get("q2")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
-      #MyList.append(items)
+   
+    
+   
     if "q1" in item:
       items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "gridposition": str(item.get("position")),"circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
       #MyList.append(items)
+
+    if "q2" in item:
+      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" :  str(item.get("q2")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
+      #MyList.append(items)
+
+    if "q3" in item:
+      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" : str(item.get("q2")), "q3": str(item.get("q3")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"]) }
+      #MyList.append(items)
     MyList.append(items)
+    print(items)
     
+    #x = list(Team_Names.find({'teamid': item.get("teamId")}))
+    #x = list(x)
+    #print(str(item.get("teamId")) + "and the name: " + str(x[0]["fullName"]))
   
   #we need to get the weather results
   #2026-03-14T07:00:00Z start date for qualifying
-
+  
   #now we need to go through each of the vairables
 
   #CircuitID - a18e0166-6188-4b0f-7c87-08d9161fe87b
+  
   #Name Chinese Grand Prix
+  
   response = requests.post("http://host.docker.internal:2000/MLModelPerformance",json=MyList)
- 
+  #response = requests.get("http://host.docker.internal:2000/MLModelPerformance")
   #c0c47b04-21d3-4765-c8fa-08d94ab130d2
   #data  = response.json()
   #print(data)

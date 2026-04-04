@@ -44,11 +44,14 @@ class F1_Race_Prediction(nn.Module):
     out = self.relu2(out)
     out = self.Input4(out)
     #out = self.activitation(out)
-    return torch.argmax(out, dim=1)
+    #return torch.argmax(out, dim=1)
+    return out
 
 def ConvertToMilliSeconds(time):
+
+  
   minutes, seconds = time.split(":")
-  total_time_in_ms = int(minutes) * 60 * 100 + float(seconds) * 1000
+  total_time_in_ms = ((float(minutes) * 60) + float(seconds)) * 1000
   return int(total_time_in_ms)
 
 def WeatherDataRes(lat,lng,date):
@@ -59,85 +62,132 @@ def WeatherDataRes(lat,lng,date):
   #We now need to get weather data
   return WeatherData
 
+def CompareCircuits(CircuitID):
+
+  Circuits = pl.read_csv("F1_Data/Circuit_Conversion.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
+  Data = Circuits.filter(pl.col('UUID') == str(CircuitID))
+  return Data
+
+def ConstructorID(ConstructorID):
+  Constructor = pl.read_csv("F1_Data/Team_Conversion.csv", separator=",", encoding="utf-8-sig",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
+  Data = Constructor.filter(pl.col('UUID') == str(ConstructorID))
+  return Data["Number_trainning_Team"].item()
+
+def DriverIDFunc(DriverID):
+  Driver = pl.read_csv("F1_Data/Driver_Conversion.csv", separator=",", encoding="utf-8-sig",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
+  Data = Driver.filter(pl.col('UUID') == str(DriverID))
+  return Data["Number_trainning"].item()
 
 def DataPrepANDRunModel(QualiData):
-  GetData = [[1170,"5d86760d-5842-4ca1-214d-08d9161fe7c5",11111,"d5802ec3-7d45-4b65-b83b-fbb496f87b2d",2,2026,2,17,"08/03/2026",31.3389,121.22,75.8,54.4,63.9,75.8,54.4,0,0,0,18.8,169.6,60,1,1,1,1,1,79435,78811,80120,5]]
-
-  GetData = pl.DataFrame(GetData, schema=["raceId",	"driverId","qualifyId","constructorId","grid","year","Race_round","circuitId","date","lat","lng","tempmax","tempmin","temp","dew","humidity",	"precip",	"snow",	"snowdepth","windspeed","winddir","cloudcover","ReachedQ2","ReachedQ3","Finished Race","SetQ1Time","Finished_Race","Q2_Millsec","Q3_Millsec","Q1_Millsec","race_time_hr"
-
-  ])
+  #we are getting the circuit that has been raced on
+  
 
   GetData = pl.read_csv("F1_Data/Prerace_Prediction.csv", separator=",", encoding="latin1",null_values=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"], ignore_errors=True)
 
-  Data = GetData.filter(pl.col('circuitId').cast(pl.Utf8) == QualiData[0].circuitId)
+  
+  #GetData = GetData.with_columns(pl.when(pl.col("Q1_Millsec") == -9999).then(0).otherwise(pl.col("SetQ1Time")).alias("SetQ1Time"))
+  #GetData = GetData.with_columns(pl.when(pl.col("Q2_Millsec") == -9999).then(0).otherwise(pl.col("ReachedQ2")).alias("ReachedQ2"))
+  #GetData = GetData.with_columns(pl.when(pl.col("Q3_Millsec") == -9999).then(0).otherwise(pl.col("ReachedQ3")).alias("ReachedQ3"))
+
+
+  #GetData.write_csv("F1_Data/Prerace_Prediction.csv", separator=",")
+  
+  Data = CompareCircuits(QualiData[0].circuitId)
+
+  #ConstructorID(QualiData[0].teamId)
+
+  #Data = GetData.filter(pl.col('circuitId').cast(pl.Utf8) == QualiData[0].circuitId)
+  #print(Data)
   lng = float(Data['lng'][0])
   lat = float(Data['lat'][0])
-
-  WeatherData = WeatherDataRes(lat,lng,QualiData[0].date)
+  CircuitID = str(Data["Cicruit_Number_trainning"][0])
+  WeatherData = WeatherDataRes(Data['lat'][0],Data['lng'][0],QualiData[0].date)
   #now manipulation needs to be done on oter data
   
-  data = [WeatherData['days'][0]['tempmax'], WeatherData['days'][0]['tempmin'], WeatherData['days'][0]['temp'],WeatherData['days'][0]['dew'],WeatherData['days'][0]['humidity'], WeatherData['days'][0]['precip'], WeatherData['days'][0]['snow'],WeatherData['days'][0]['snowdepth'],WeatherData['days'][0]['windspeed'],WeatherData['days'][0]['winddir'], WeatherData['days'][0]['pressure'],WeatherData['days'][0]['cloudcover'],WeatherData['days'][0]['visibility']]
 
 
-  WeatherData = {"tempmax": WeatherData['days'][0]['tempmax'], "tempmin": WeatherData['days'][0]['tempmin'], "temp":WeatherData['days'][0]['temp'], "dew" : WeatherData['days'][0]['dew'], "humidity": WeatherData['days'][0]['humidity'], "precip": WeatherData['days'][0]['precip'], "snow": WeatherData['days'][0]['snow'], "snowdepth": WeatherData['days'][0]['snowdepth'], "windspeed":WeatherData['days'][0]['windspeed'], "winddir": WeatherData['days'][0]['winddir'], "pressure": WeatherData['days'][0]['pressure'], "cloudcover": WeatherData['days'][0]['cloudcover'], 'visibility': WeatherData['days'][0]['visibility']}
+
+  WeatherData = {"tempmax": WeatherData['days'][0]['tempmax'], "tempmin": WeatherData['days'][0]['tempmin'], "temp":WeatherData['days'][0]['temp'], "dew" : WeatherData['days'][0]['dew'], "humidity": WeatherData['days'][0]['humidity'], "precip": WeatherData['days'][0]['precip'], "snow": WeatherData['days'][0]['snow'], "snowdepth": WeatherData['days'][0]['snowdepth'], "windspeed":WeatherData['days'][0]['windspeed'], "winddir": WeatherData['days'][0]['winddir'], "cloudcover": WeatherData['days'][0]['cloudcover']}
 
 
   #Then we need to get the data - we need to get year out of that fuuck...
 
 
   #Get Qualifying ID
-  QualifyingId = int(GetData["qualifyId"][-1])
+  QualifyingId = int(GetData["qualifyId"].max())
 
-  RaceId = int(GetData["raceId"][-1] + 1)
-  #Get Round
+  RaceId = int(GetData["raceId"].max() + 1)
+  print(RaceId)
   RaceRound = int(GetData["Race_round"][-1] + 1)
 
-
   MyList = []
+
   for item in QualiData:
+
+    #We need to convert each DriverID in this bit!
+    
+    ConstructorIDIn = str(ConstructorID(item.teamId))
+    DriverIDIn =  str(DriverIDFunc(item.driverId))
     #convert each qualitime into a milliseconds then get assign a onehot encoding value for each column
     QualifyingId = QualifyingId + 1
     #format date
-
     #split the string into date and year, then with the date part [0] split it in year,month and date then reassemble using the other date format
     year, month, day = item.date.split("T")[0].split("-")
     finalDate = f"{year}"
     # Have to get race time hr - Missing vairable
     item = item.dict()
-    if item.get("q3") is not None:
-      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec": ConvertToMilliSeconds(item.get("q3")), "grid": item.get("position"), "circuitId": str(item.get("circuitId")),"year": str(finalDate),"ReachedQ3" : "1", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId), "lat": str(lat), "lng" :str(lng), "Race_round": str(RaceRound) }
-      items = items | WeatherData
-      MyList.append(items)
 
-    elif item.get("q2") is not None:
-      
-      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" :  ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec" : -9999, "grid": item.get("position"), "circuitId": str(item.get("circuitId")),"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
-      items = items | WeatherData
-      MyList.append(items)
-
-
-      #MyList.append(items)
-    elif item.get("q1") is not None:
+    if item.get("q1") is not None:
       q1 = ConvertToMilliSeconds(str(item.get("q1")))
       #Q2 needs to be inputted as -9999
 
-      items = {"driverId" : str(item.get("driverId")),"constructorId": str(item.get("teamId")), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : -9999, "Q3_Millsec" : -9999, "grid": item.get("position"),"circuitId": str(item.get("circuitId")),"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "0", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
+      items = {"driverId" : str(DriverIDIn),"constructorId": str(ConstructorIDIn), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : -9999, "Q3_Millsec" : -9999, "grid": item.get("gridposition"),"circuitId": CircuitID,"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "0", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
       #MyList.append(items)
       items = items | WeatherData
-      MyList.append(items)
-  print(MyList)
 
+    if item.get("q2") is not None:
+      
+      items = {"driverId" : str(DriverIDIn),"constructorId": str(ConstructorIDIn), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" :  ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec" : -9999, "grid": item.get("gridposition"), "circuitId": CircuitID,"year": str(finalDate), "ReachedQ3" : "0", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId),"lat": str(lat), "lng" :str(lng),"Race_round": str(RaceRound)}
+      items = items | WeatherData
+
+    if item.get("q3") is not None:
+      items = {"driverId" : str(DriverIDIn),"constructorId": str(ConstructorIDIn), "Q1_Millsec" : ConvertToMilliSeconds(item.get("q1")), "Q2_Millsec" : ConvertToMilliSeconds(item.get("q2")), "Q3_Millsec": ConvertToMilliSeconds(item.get("q3")), "grid": item.get("gridposition"), "circuitId": CircuitID,"year": str(finalDate),"ReachedQ3" : "1", "ReachedQ2": "1", "SetQ1Time": "1", "raceId": str(RaceId), "qualifyId" : str(QualifyingId), "lat": str(lat), "lng" :str(lng), "Race_round": str(RaceRound) }
+      items = items | WeatherData
+    #print(items)
+    items = items | {'final_race_pos': 0,'Finished_Race': 1,'resultId': 1,'points': 1,'qualifyId': 1, 'date': '2026',  'Result': 1, 'Finished Race': 1,'race_time_hr': 1}
+    MyList.append(items)
+    #print(items)
+    #print(items)
+    break
+      #MyList.append(items)
+    
+    #print(items)
+
+    
+  
   #We need to fix a bunch of columns
+
+  orderForVairables = ["raceId","driverId","qualifyId","constructorId","Result","resultId","grid","final_race_pos","points","year","Race_round","circuitId","date","lat","lng","tempmax","tempmin","temp","dew","humidity",	"precip","snow","snowdepth","windspeed","winddir","cloudcover","ReachedQ2","ReachedQ3","Finished Race","SetQ1Time","Finished_Race","Q2_Millsec","Q3_Millsec","Q1_Millsec","race_time_hr"
+]
   MyList = pl.DataFrame(MyList)
   
   #to_physical opperates my converted the UUID's into a scale from zero, adding 1000 means it does not get misinterpreted as another drivers id
-  MyList = MyList.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical() + 1000)
-  MyList = MyList.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical() + 1000)
-  MyList = MyList.with_columns(pl.col('circuitId').cast(pl.Categorical).to_physical() + 1000)
+  #MyList = MyList.with_columns(pl.col('driverId').cast(pl.Categorical).to_physical())
+  #MyList = MyList.with_columns(pl.col('constructorId').cast(pl.Categorical).to_physical())
+  #MyList = MyList.with_columns(pl.col('circuitId').cast(pl.Categorical).to_physical())
   
-  MyList = MyList.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, "grid": pl.Int64, "year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "winddir": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,"SetQ1Time": pl.Int32, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64})
+  MyList = MyList.cast({"raceId": pl.Int64, "driverId" : pl.Int64, "qualifyId" : pl.Int64, "constructorId" : pl.Int64, 'Result': pl.Int64,'resultId':pl.Int64, "grid": pl.Int64,'final_race_pos': pl.Int64, 'points': pl.Int64,"year": pl.Int64, "Race_round": pl.Int64, "circuitId" : pl.Int64,'date': pl.Int64, "lat": pl.Float64, "lng": pl.Float64, "tempmax": pl.Float64,"tempmin": pl.Float64, "temp": pl.Float64, "dew": pl.Float64, "humidity": pl.Float64, "precip": pl.Float64, "snow": pl.Float64, "snowdepth": pl.Float64, "windspeed": pl.Float64, "winddir": pl.Float64, "cloudcover": pl.Float64, "ReachedQ2": pl.Int32, "ReachedQ3": pl.Int32,'Finished Race':pl.Int64,"SetQ1Time": pl.Int32, 'Finished Race': pl.Int64, "Q2_Millsec": pl.Int64,"Q3_Millsec": pl.Int64,"Q1_Millsec": pl.Int64,'race_time_hr': pl.Int64})
   #Splitting values between expected outcome as well as the data which is used to predict the race.
 
+  #This should be ready for ML model now 
+  MyList = MyList.select(orderForVairables)
+
+  for row in MyList.iter_rows(named=True):
+    print(row)
+
+  #Write the values of the australianGP to the csv file, nice!
+  #GetData = pl.concat([GetData.cast(pl.Utf8),MyList.cast(pl.Utf8)])
+  #GetData.write_csv("F1_Data/Prerace_Prediction.csv", separator=",")
   
   #So we can query the dataset and get the appropriate longditude and lat stuff for our data
 
@@ -153,8 +203,7 @@ def DataPrepANDRunModel(QualiData):
 
 
   #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
-  print(len(GetData))
-  dataLen = len(GetData)
+
 
   #Train = int(int(dataLen) * 0.7)
   #Test = dataLen - Train
@@ -162,24 +211,35 @@ def DataPrepANDRunModel(QualiData):
   #print("Test",Test)
   #y = GetData.select(['race_f']).to_numpy()
   #Might not need this as this is because we dont know these values.
+  
   x = MyList.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
 
   #For now lets replicate example with four classes instead of 20
 
   x = torch.from_numpy(x)
-  print(len(MyList))
+  
+
+  
+
   #------ NEED TO ADD 3 EXTRA DIMENSIONS TO THE TENSOR AND PUSH THESE  -------
 
-  #Embedding our RaceID
-  embedding = nn.Embedding(num_embeddings= 1000 + len(MyList), embedding_dim=1)
-  #input shape from numpy is [5810,1] so with embedding_dim=1 makes it [5810,1,1]
-  embed = embedding(torch.from_numpy(MyList.select(['raceId']).to_numpy())).squeeze(1)
+  DriverID = torch.from_numpy(MyList.select(['driverId']).to_numpy()).long()
+  RaceID = torch.from_numpy(MyList.select(['raceId']).to_numpy()).long()
+  driver_number = int(DriverID.max()) + 1
+  race_id = int(RaceID.max()) + 1
 
-  #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
+
+
+  #Embedding our RaceID
+  embedding = nn.Embedding(num_embeddings=race_id, embedding_dim=1)
+  embed = embedding(RaceID).squeeze(1)
+
   x = torch.cat((x, embed), dim=1)
+
   #Embedding our DriverID
-  embedding = nn.Embedding(num_embeddings=1000 + len(MyList), embedding_dim=1)
-  embed = embedding(torch.from_numpy(MyList.select(['driverId']).to_numpy())).squeeze(1)
+  embedding = nn.Embedding(num_embeddings=   driver_number, embedding_dim=1)
+  #input shape from numpy is [5810,1] so with embedding_dim=1 makes it [5810,1,1]
+  embed = embedding(DriverID).squeeze(1)
 
   #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
   x = torch.cat((x, embed), dim=1)
@@ -191,48 +251,27 @@ def DataPrepANDRunModel(QualiData):
   scaler = joblib.load("scaler.pkl")
   model.load_state_dict(torch.load("model.pth"))
 
-  
-  #We can get rid of this because no training and testing split
-  #row_split_check_x = torch.split(x,[Train,Test],dim=0)
-  #test_x, validate_x = row_split_check_x
-
-  #row_split_check_y = torch.split(y,[Train,Test],dim=0)
-  #test_y, validate_y = row_split_check_y
-
-  #test_y, validate_y = row_split_check_y
-
-  #test_x = test_x.to(torch.float32)
-  #validate_x = validate_x.to(torch.float32)
-  #For some reason these are 2D but want it to be 1D
-  #test_y = test_y.to(torch.long).squeeze(1)
-  #validate_y = validate_y.to(torch.long).squeeze(1)
 
   x = x.detach().numpy()
 
   x = scaler.transform(x)
   x = torch.from_numpy(x)
   x = x.to(torch.float32)
-  #validate_x = validate_x.detach().numpy()
-  #temp2 = scaler.fit(validate_x)
-  #validate_x = temp2.transform(validate_x)
-  #validate_x = torch.from_numpy(validate_x)
 
-  #validate_x = validate_x.detach()
-  #device = torch.accelerator.current_accelerator().type
-  #converting our data to tensors from numpy once we have split the data
-"""
+  #print(x)
+  
+  print(x.shape)
+  #single_sample = x[1].unsqueeze(0)
+  
   with torch.no_grad():
     prediction = model(x)
-
+    print(prediction)
   
-
-  print(prediction.shape)
-  """
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
   #torch.save(model.state_dict(), "model.pth")
   #joblib.dump(scaler, "scaler.pkl")
-
-
+  
+  
 app = FastAPI()
 
 
