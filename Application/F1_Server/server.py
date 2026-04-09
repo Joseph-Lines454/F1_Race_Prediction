@@ -110,8 +110,8 @@ headers = {
 Year = date.today().year
 
 #clientDatabase = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
-clientDatabase = MongoClient("mongodb://host.docker.internal:27017/")
-newdatabase = clientDatabase["Drivers"]
+clientDatabase = MongoClient("mongodb://adminUser:NewPassSecure33~@16.16.209.95:27017/Drivers?authSource=admin")
+newdatabase = clientDatabase["f1db"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
 Races = newdatabase['Races']
 #we need to store the standings after each race in the database
@@ -574,7 +574,7 @@ def root():
     
    
     
-   
+  
     if "q1" in item:
       items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "gridposition": str(item.get("position")),"circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
       #MyList.append(items)
@@ -605,9 +605,23 @@ def root():
   response = requests.post("http://host.docker.internal:2000/MLModelPerformance",json=MyList)
   #response = requests.get("http://host.docker.internal:2000/MLModelPerformance")
   #c0c47b04-21d3-4765-c8fa-08d94ab130d2
-  #data  = response.json()
+  data  = response.json()
+  print(data)
+  #GetDriverNames(data)
   #print(data)
-  #print(data)
-  return "We have successfully Quried the other server!!!"
+  return GetDriverNames(data)
 
   
+def GetDriverNames(DriverData):
+  DriverList = []
+  print("We are gettin drivernames")
+  count = 0
+  for x in DriverData:
+    name = Driver_Names.find({"driverid": DriverData[count]["DriverName"]})
+    name = list(name)
+    #DriverList.append({"DriverName": Driver_Names.find({"driverid": DriverData[0]["DriverName"]})})
+    DriverList.append({"DriverName": name[0]["firstName"] + " " + name[0]["lastName"], "DriverPosition":  DriverData[count]["DriverPositon"]})
+    print( DriverList[count])
+    count = count + 1
+
+  return DriverList

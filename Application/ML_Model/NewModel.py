@@ -158,7 +158,7 @@ def DataPrepANDRunModel(QualiData):
     MyList.append(items)
     #print(items)
     #print(items)
-    break
+    
       #MyList.append(items)
     
     #print(items)
@@ -267,10 +267,21 @@ def DataPrepANDRunModel(QualiData):
     prediction = model(x)
     print(prediction)
   
+
+  #We need to loop through the prediction and assign the predictiont to the appropriate driver
+  
+  newData = []
+  print("tensorShape:", prediction.shape)
+  count = 0
+  for item in QualiData:
+    newData.append({"DriverName": item.driverId, "DriverPositon": torch.argmax(prediction[count]).item()})
+    print(newData[count])
+    count = count + 1
+
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
   #torch.save(model.state_dict(), "model.pth")
   #joblib.dump(scaler, "scaler.pkl")
-  
+  return newData
   
 app = FastAPI()
 
@@ -296,12 +307,11 @@ async def root(QualiData: List[QualifyingData]):
   #We need to get the qualifying results for the AustralianGP 
   #we need to recive input here
 
-  print("Hello World!!!")
-  DataPrepANDRunModel(QualiData)
+  
   #we return ML results
-  return "Hello World!! + We have queried the oher model/webserver correctly!!!"
+  return DataPrepANDRunModel(QualiData)
 
 #Data needs to have some pre-processing done to it
 
 
-# we need a training loop and a validation loop for our models
+# we need a training loop and a validation loop for our modelsH
