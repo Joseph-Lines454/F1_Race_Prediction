@@ -41,6 +41,7 @@ function Historical() {
   
   const GetHistoricalData = (season) => {
     var xhttp = new XMLHttpRequest();
+    xhttp.withCredentials = true;
     xhttp.onreadystatechange = function() {
     
     if (this.readyState == 4 && this.status == 200)
@@ -51,7 +52,7 @@ function Historical() {
     }
     }
   
-    xhttp.open("POST","http://127.0.0.1:8001/Historical",true)
+    xhttp.open("POST","http://localhost:8001/Historical",true)
     xhttp.setRequestHeader('Content-Type', 'application/json')
     xhttp.send(JSON.stringify({year : Number(season)}));
   }
@@ -60,6 +61,7 @@ function Historical() {
     console.log(data[0])
     console.log(data[1])
     var xhttp = new XMLHttpRequest();
+    xhttp.withCredentials = true;
     xhttp.onreadystatechange = function() {
     
     if (this.readyState == 4 && this.status == 200)
@@ -70,19 +72,11 @@ function Historical() {
     }
     }
   
-    xhttp.open("POST","http://127.0.0.1:8001/GetData",true)
+    xhttp.open("POST","http://localhost:8001/GetData",true)
     xhttp.setRequestHeader('Content-Type', 'application/json')
     xhttp.send(JSON.stringify({EventID : String(data[0]), RaceID : String(data[1])}));
   }
 
-  const SetSeasonSel = (Season)  => {
-    //SeasonSet(Number(Season))
-    
-    SeasonSet(Number(Season))
-    console.log(Season)
-    GetHistoricalData()
-    //GetSeasonData()
-  }
 
   const UpdateText = (e) => {
     //some validation here

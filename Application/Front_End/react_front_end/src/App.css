@@ -3,7 +3,7 @@
   
  
   background-color: #cccccc; /* Used if the image is unavailable */
-  height: 100%; /* You must set a specified height */
+  height: 20%; /* You must set a specified height */
   background-position: center; /* Center the image */
   background-repeat: no-repeat; /* Do not repeat the image */
   background-size: cover; /* Resize the background image to cover the entire container */
@@ -46,9 +46,7 @@
 
 }
 
-.AlignBarChartsHistorical {
 
-}
 
 table th, td {
   padding: 12px 15px;
@@ -216,4 +214,32 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+
+
+/*THIS IS CODE FOR LOGIN AND REGISTRATION FUNCTIONS*/
+.FormAlign {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+ 
+
+}
+
+.textForm {
+  text-align: center;
+}
+
+#buttonstyle {
+  width: 100%;
+  height: 2.5em;
+  text-decoration: none;
+}
+
+.LinkStyle
+{
+  text-decoration: none;
+  color: black;
 }

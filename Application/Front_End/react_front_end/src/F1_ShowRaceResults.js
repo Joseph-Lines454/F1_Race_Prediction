@@ -56,7 +56,7 @@ function F1_ShowRaceResults() {
   console.log(data.length)
   return (
     <>
-    {data && data.length > 0 && (
+    {data && data.length > 0 && data != null && (
     <div className='MainBody'>
       <h1 className='HistoricalData'>Race Data</h1>
         <table className='HistoricalData'>

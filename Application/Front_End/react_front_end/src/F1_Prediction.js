@@ -6,6 +6,7 @@ import ReactDOM from "react-dom/client"
 function F1_Prediction() {
   const [dataRecived,dataSet] = useState(null)
   var GetSeasonData = new XMLHttpRequest();
+  GetSeasonData.withCredentials = true;
   GetSeasonData.onreadystatechange = function()
   {
     if (this.readyState == 4 && this.status == 200)

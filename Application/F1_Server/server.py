@@ -6,7 +6,7 @@ import json
 import http.client
 from pymongo import MongoClient
 import asyncio
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from datetime import date
@@ -18,6 +18,9 @@ import json
 import requests
 import aiohttp
 import os
+import bcrypt
+import uuid
+
 #CONNECTION MANAGER TO ALLOW FOR OUR WEBSOCEKTS TO BE USED
 
 app = FastAPI()
@@ -29,7 +32,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -40,7 +43,17 @@ app.add_middleware(
 
 #Check if the data is live somehow - make a request and see the status of the session
 
-
+def CheckCookies(checkCookies):
+  print("Check Cookies")
+  data = UserData.find({'SessionID': checkCookies})
+  data = list(data)
+  print(data)
+  if data != []:
+    print("Here!")
+    return True
+  else:
+    print("WE DONT HAVE A COOKIE!")
+    return False
 
 RAPIDAPI = http.client.HTTPSConnection("f1-live-pulse.p.rapidapi.com")
 headersLIVE = {
@@ -110,7 +123,7 @@ headers = {
 Year = date.today().year
 
 #clientDatabase = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
-clientDatabase = MongoClient("mongodb://adminUser:NewPassSecure33~@16.16.209.95:27017/Drivers?authSource=admin")
+clientDatabase = MongoClient("mongodb://adminUser:NewPassSecure33~@13.63.137.172:27017/Drivers?authSource=admin")
 newdatabase = clientDatabase["f1db"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
 Races = newdatabase['Races']
@@ -121,6 +134,7 @@ Driver_Names = newdatabase["Driver_Names"]
 Team_Names = newdatabase["Team_Names"]
 SessionData = newdatabase["SessionData"]
 RaceResults = newdatabase["RaceResults"]
+UserData = newdatabase["loginInfo"]
 def on_connect(client, userdata, flags, rc, properties = None):
   print("we are here!!")
   if rc == 0:
@@ -289,6 +303,9 @@ async def functionStoreRaces():
 
 #if i get this done tommorow,that might be better - because more API requests
 async def GetRaceResults():
+
+  
+
   #We need to get all of the race results from the Races section first off, then loop through and apply all of the items that we need 
   #we could also send a request to get the drivers name but i think it would be better downloading becuase i highly doubt we are going to have enough API requests for that
   x = list(Races.find({}))
@@ -438,40 +455,53 @@ async def startup_mqtt():
   #  asyncio.run(RaceRunning)
   #asyncio.create_task(poll_hyprace())
 @app.get("/F1_Statistics")
-async def root():
+async def root(request: Request,response: Response):
+  CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
+  print("Cookie " + str(request.cookies.get("session_cookie")))
+  if CheckCookiesOut != False:
+    arrayDrivers = []
+    arrayDriverNames = []
+    ConstructorData = []
+    season = await CurrentSeason()
+    #await CheckAPIStrings()
+    response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/seasons/{season}/teams?pageSize=25", headers=headers)
+    #await UpdateStandings()
+    data = response
+    newData = data.json()
 
-  arrayDrivers = []
-  arrayDriverNames = []
-  ConstructorData = []
-  season = await CurrentSeason()
-  #await CheckAPIStrings()
-  response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/seasons/{season}/teams?pageSize=25", headers=headers)
-  #await UpdateStandings()
-  data = response
-  newData = data.json()
-
-  data = []
-  sendJSON = GetStandings(newData)
+    data = []
+    sendJSON = GetStandings(newData)
     
-  return sendJSON
+    return sendJSON
+  else:
+    response.status_code = 401
+    return None
 #Might need to return the races in order but we can do this no problem
 @app.get("/F1_Standings_Over_Time")
-async def root():
-  #code that gets all of the data needed back from the database
-  x = list(Drivers_Standings.find({"timestamp" : {"$regex": "26"}}).sort({"timestamp": 1}))
-  list(x)
+async def root(request: Request,response: Response):
+  CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
+  print("Cookie " + str(request.cookies.get("session_cookie")))
+  if CheckCookiesOut != False:
 
-  for data in x:
-    data["_id"] = str(data["_id"])
+    #code that gets all of the data needed back from the database
+    x = list(Drivers_Standings.find({"timestamp" : {"$regex": "26"}}).sort({"timestamp": 1}))
+    list(x)
 
-  y = list(Teams_Standings.find({"timestamp" : {"$regex": "26"}}).sort({"timestamp": 1}))
-  list(y)
-  for data in y:
-    data["_id"] = str(data["_id"])
+    for data in x:
+      data["_id"] = str(data["_id"])
 
-  data = [x,y]
+    y = list(Teams_Standings.find({"timestamp" : {"$regex": "26"}}).sort({"timestamp": 1}))
+    list(y)
+    for data in y:
+      data["_id"] = str(data["_id"])
 
-  return data
+    data = [x,y]
+
+    return data
+  else:
+    #should raise an error here because yeah important
+    response.status_code = 401
+    return None
 
 
 #Historical is looking good also need to get race results based on id, need to store in database
@@ -489,21 +519,25 @@ async def WebsocketSend_Test():
 
 
 @app.post("/GetData")
-def root(Data: GetRaceR):
-  x = list(RaceResults.find({'Raceid': Data.RaceID, "Eventid" : Data.EventID }))
-  print("We are here!")
-  myList = []
-  #Here we need to get the driver name as well as the team name
-  
-  for d in x:
-    TN = Team_Names.find_one({"teamid" : d["Teamid"]})
-    DN = Driver_Names.find_one({"driverid" : d["Driverid"]})
-    DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "colour" : TN["color"], "points": d["points"]  }
-    
-    myList.append(DriverData)
-    #print(d)
-
-  return myList
+def root(Data: GetRaceR, request: Request,response: Response):
+  CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
+  if CheckCookiesOut == True:
+    x = list(RaceResults.find({'Raceid': Data.RaceID, "Eventid" : Data.EventID }))
+    print("We are here!")
+    myList = []
+    #Here we need to get the driver name as well as the team name
+      
+    for d in x:
+      TN = Team_Names.find_one({"teamid" : d["Teamid"]})
+      DN = Driver_Names.find_one({"driverid" : d["Driverid"]})
+      DriverData = {"raceid" : d["Raceid"], "Eventid" : d["Eventid"], "Driverid" : d["Driverid"], "FinishedPosition" : d["FinishedPostion"], "Finaltime" : d["Finaltime"],"DriverName" : DN["firstName"] + " " + DN["lastName"], "country": DN["countryshort"], "fullName" : TN["fullName"], "colour" : TN["color"], "points": d["points"]  }
+        
+      myList.append(DriverData)
+        #print(d)
+    return myList
+  else:
+    response.status_code = 401
+    return None
 
 @app.post("/Historical")
 async def root(Data: SeasonYearData):
@@ -556,38 +590,40 @@ def root():
 
 
 @app.get("/TestMLModels")
-def root():
-  #Get the event data, circuit data then we can map it and pass to the ML server
-  #We are going to use the data from china - we need to get qualifying data
-  response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43/qualifying/83b18780-2a95-49ea-ab9e-75d9733b716a/results", headers=headers)
-  #print(response)
+def root(request: Request,response: Response):
 
-  
+  CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
+  if CheckCookiesOut == True:
+    #Get the event data, circuit data then we can map it and pass to the ML server
+    #We are going to use the data from china - we need to get qualifying data
+    response = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43/qualifying/83b18780-2a95-49ea-ab9e-75d9733b716a/results", headers=headers)
+    #print(response)
 
-  data  = response.json()
-  response2 = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43", headers = headers)
-  data2 = response2.json()
-  #print(data2)
-  MyList = []
-  
-  for item in data["results"]:
     
-   
+
+    data  = response.json()
+    response2 = requests.get("https://hyprace-api.p.rapidapi.com/v2/grands-prix/c267fde7-de50-4d56-a2fc-1313439daa43", headers = headers)
+    data2 = response2.json()
+    #print(data2)
+    MyList = []
+    
+    for item in data["results"]:
+      
+      if "q1" in item:
+        items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "gridposition": str(item.get("position")),"circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
+        #MyList.append(items)
+
+      if "q2" in item:
+        items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" :  str(item.get("q2")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
+        #MyList.append(items)
+
+      if "q3" in item:
+        items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" : str(item.get("q2")), "q3": str(item.get("q3")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"]) }
+        #MyList.append(items)
+      MyList.append(items)
+      print(items)
     
   
-    if "q1" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "gridposition": str(item.get("position")),"circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
-      #MyList.append(items)
-
-    if "q2" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" :  str(item.get("q2")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"])}
-      #MyList.append(items)
-
-    if "q3" in item:
-      items = {"driverId" : str(item.get("driverId")),"teamId": str(item.get("teamId")), "q1" : str(item.get("q1")), "q2" : str(item.get("q2")), "q3": str(item.get("q3")), "gridposition": str(item.get("position")), "circuitId": str(data2.get("circuitId")),"date": str(data2["schedule"][1]["startDate"]) }
-      #MyList.append(items)
-    MyList.append(items)
-    print(items)
     
     #x = list(Team_Names.find({'teamid': item.get("teamId")}))
     #x = list(x)
@@ -602,14 +638,18 @@ def root():
   
   #Name Chinese Grand Prix
   
-  response = requests.post("http://host.docker.internal:2000/MLModelPerformance",json=MyList)
-  #response = requests.get("http://host.docker.internal:2000/MLModelPerformance")
-  #c0c47b04-21d3-4765-c8fa-08d94ab130d2
-  data  = response.json()
-  print(data)
-  #GetDriverNames(data)
-  #print(data)
-  return GetDriverNames(data)
+    response = requests.post("http://host.docker.internal:2000/MLModelPerformance",json=MyList)
+    #response = requests.get("http://host.docker.internal:2000/MLModelPerformance")
+    #c0c47b04-21d3-4765-c8fa-08d94ab130d2
+    data  = response.json()
+    print(data)
+    #GetDriverNames(data)
+    #print(data)
+    return GetDriverNames(data)
+
+  else:
+    response.status_code = 401
+    return None
 
   
 def GetDriverNames(DriverData):
@@ -625,3 +665,66 @@ def GetDriverNames(DriverData):
     count = count + 1
 
   return DriverList
+
+
+class Credentials(BaseModel):
+  username: str
+  password: str
+  email: str
+
+
+class CredentialsLogin(BaseModel):
+  username: str
+  password: str
+
+
+#now we need to implement cookies
+
+@app.post("/Login")
+async def root(Cred: CredentialsLogin, response: Response):
+  UserName = UserData.find({'username': Cred.username})
+  UserName = list(UserName)
+  try:
+    hashedPasswordCheck = UserName[0]["password"]
+  
+  
+    if bcrypt.checkpw(Cred.password.encode("utf-8"), hashedPasswordCheck):
+      Cookies = str(uuid.uuid4())
+      response.set_cookie(key="session_cookie", value=Cookies, httponly=True,samesite="lax",secure=False)
+      data = UserData.update_one({"username": Cred.username}, {"$set" : {"SessionID": Cookies}})
+      print(data)
+      return "Passwords Match"
+    else:
+      return "Passwords Dont Match!"
+  except Exception as e:
+    print(e)
+    return "Password does not match!"
+
+
+@app.post("/Register")
+async def root(Cred: Credentials,request: Request,response: Response):
+  print("We have Registered into the application")
+  
+  UserName = UserData.find({'username': Cred.username})
+  UserName = list(UserName)
+
+  #We need to hash the password
+
+  
+
+  # if username is found, do x
+  if UserName != []:
+    print("This username is already in the database!")
+    response.status_code = 401
+    return None
+  else:
+    print("Here?/")
+    hashed_password = bcrypt.hashpw(Cred.password.encode('utf8'), bcrypt.gensalt())
+    UserData.insert_one({'username': Cred.username, 'password': hashed_password, 'email': Cred.email})
+    response.status_code = 200
+    return None
+
+  
+  #check if username is already taken
+
+

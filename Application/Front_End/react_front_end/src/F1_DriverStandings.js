@@ -8,14 +8,14 @@ let Seasons = null;
 let DriverColours = ["#FF5733","#33FF57","#3357FF","#FF33A1","#33fff5","#F5FF33","#FF8C33","#"]
 
 //Might need to use useeffect here...
-let Response = undefined;
+let Response = null;
 
 let ValidPrint = false;
 let Teams = undefined;
 let Drivers = undefined;
 let Drivers_Over_Season = undefined;
 let Teams_Over_Season = undefined;
-var xhttp = new XMLHttpRequest();
+
 
 let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "orange","haas": "lightgray", "red bull racing": "lightblue","racing bulls" :"darkyellow","alpine": "lightpink","Audi": "silver","Williams": "dark blue","Cadillac" : "black", "aston martin": "darkgreen"}
 //Driver Colours here
@@ -49,51 +49,7 @@ function AssignDriverColours(DriversLen, Drivers){
 
 }
 
-xhttp.onreadystatechange = function() {
 
-  if (this.readyState == 4 && this.status == 200)
-  {
-   
-    Response = this.responseText
-    Response = JSON.parse(Response)
-    Drivers = Response[0]
-    Teams = Response[1]
-     
-    Drivers.sort(function(a,b){
-      return b.points - a.points
-    })
-    Drivers = AssignDriverColours(Object.keys(Drivers).length, Drivers)
-    console.log("Drivers Colour: " + Drivers[0].colour)
-    ValidPrint = true;
-
-  }
-    
-    
-
-
-}
-  
-xhttp.open("GET","http://127.0.0.1:8001/F1_Statistics",true)
-xhttp.send();
-
-var GetSeasonData = new XMLHttpRequest();
-GetSeasonData.onreadystatechange = function()
-{
-  if (this.readyState == 4 && this.status == 200)
-  {
-    
-    Response = JSON.parse(this.responseText)
-    Drivers_Over_Season = Response[0]
-    Teams_Over_Season = Response[1]
-    console.log(Teams_Over_Season)
-    //We need to change the shape of the data, so we need to concatinate it all together
-    Drivers_Over_Season = SortDataForGraph(Drivers_Over_Season)
-    Teams_Over_Season = SortDataForGraph(Teams_Over_Season)
-    
-  }
-}
-GetSeasonData.open("GET","http://127.0.0.1:8001/F1_Standings_Over_Time",true)
-GetSeasonData.send();
 
 function SortDataForGraph(Data)
 {
@@ -149,14 +105,79 @@ function SortDataForGraph(Data)
 
 let driverNames = undefined
 function F1_DriverStandings() {
+
+
+  useEffect(() => {
+  var xhttp = new XMLHttpRequest();
+  var GetSeasonData = new XMLHttpRequest();
+  GetSeasonData.withCredentials = true;
+  xhttp.withCredentials = true;
+  xhttp.onreadystatechange = function() {
+
+  if (this.readyState == 4 && this.status == 200 && this.responseText != null)
+  {
+    Response = this.responseText
+    Response = JSON.parse(Response)
+    Drivers = Response[0]
+    Teams = Response[1]
+      
+    Drivers.sort(function(a,b){
+      return b.points - a.points
+    })
+    Drivers = AssignDriverColours(Object.keys(Drivers).length, Drivers)
+    console.log("Drivers Colour: " + Drivers[0].colour)
+    ValidPrint = true;
+  }
+  else{
+    Response = null;
+  }
+    
+
+
+}
+
+
+xhttp.open("GET","http://localhost:8001/F1_Statistics",true)
+
+xhttp.send();
+
+GetSeasonData.onreadystatechange = function()
+{
+  if (this.readyState == 4 && this.status == 200 && this.responseText != null)
+  {
+    
+    Response = JSON.parse(this.responseText)
+    Drivers_Over_Season = Response[0]
+    Teams_Over_Season = Response[1]
+    console.log(Teams_Over_Season)
+    //We need to change the shape of the data, so we need to concatinate it all together
+    Drivers_Over_Season = SortDataForGraph(Drivers_Over_Season)
+    Teams_Over_Season = SortDataForGraph(Teams_Over_Season)
+  }
+  else{
+    Response = null;
+  }
+}
+GetSeasonData.open("GET","http://localhost:8001/F1_Standings_Over_Time",true)
+GetSeasonData.send();
+
+
+
+  //end
+}, []);
+
+
+
+
+
   //websocket.send("HelloooooAhhhhh")
-  if (Response != undefined)
+  if (Response != null)
   {
     driverNames = Object.keys(Drivers_Over_Season[0]).filter(k => k !== "timestamp");
   }
   
   return (
-    ((Drivers != undefined) && (Response != undefined) && (driverNames != undefined)) && (
+    ((Drivers != null) && (Response != null) && (driverNames != undefined)) && (
     <div className = "BkrdWrapper">
       <div className='MainBody'>
         <h1>Driver Standings</h1>
