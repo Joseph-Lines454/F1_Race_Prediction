@@ -1,0 +1,14 @@
+requests 
+pymongo 
+websockets 
+fastapi 
+uvicorn 
+paho-mqtt 
+aiohttp 
+requests 
+schedule 
+websockets 
+bcrypt 
+pytest 
+pytest-cov 
+httpx

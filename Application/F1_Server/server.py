@@ -45,15 +45,17 @@ app.add_middleware(
 
 def CheckCookies(checkCookies):
   print("Check Cookies")
-  data = UserData.find({'SessionID': checkCookies})
-  data = list(data)
-  print(data)
-  if data != []:
-    print("Here!")
-    return True
-  else:
-    print("WE DONT HAVE A COOKIE!")
-    return False
+  if checkCookies != None:
+    data = UserData.find({'SessionID': checkCookies})
+    data = list(data)
+    print(data)
+    if data != []:
+      print("Here!")
+      return True
+    else:
+      print("WE DONT HAVE A COOKIE!")
+      return False
+  return False
 
 RAPIDAPI = http.client.HTTPSConnection("f1-live-pulse.p.rapidapi.com")
 headersLIVE = {
@@ -459,9 +461,6 @@ async def root(request: Request,response: Response):
   CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
   print("Cookie " + str(request.cookies.get("session_cookie")))
   if CheckCookiesOut != False:
-    arrayDrivers = []
-    arrayDriverNames = []
-    ConstructorData = []
     season = await CurrentSeason()
     #await CheckAPIStrings()
     response = requests.get(f"https://hyprace-api.p.rapidapi.com/v2/seasons/{season}/teams?pageSize=25", headers=headers)
@@ -471,7 +470,7 @@ async def root(request: Request,response: Response):
 
     data = []
     sendJSON = GetStandings(newData)
-    
+    response.status_code = 200
     return sendJSON
   else:
     response.status_code = 401
@@ -693,37 +692,42 @@ async def root(Cred: CredentialsLogin, response: Response):
       response.set_cookie(key="session_cookie", value=Cookies, httponly=True,samesite="lax",secure=False)
       data = UserData.update_one({"username": Cred.username}, {"$set" : {"SessionID": Cookies}})
       print(data)
+      response.status_code = 200
       return "Passwords Match"
     else:
+      response.status_code = 401
       return "Passwords Dont Match!"
   except Exception as e:
     print(e)
+    response.status_code = 401
     return "Password does not match!"
 
 
 @app.post("/Register")
 async def root(Cred: Credentials,request: Request,response: Response):
   print("We have Registered into the application")
-  
-  UserName = UserData.find({'username': Cred.username})
-  UserName = list(UserName)
+  try:
+    UserName = UserData.find({'username': Cred.username})
+    UserName = list(UserName)
 
-  #We need to hash the password
+    #We need to hash the password
 
-  
+    
 
-  # if username is found, do x
-  if UserName != []:
-    print("This username is already in the database!")
+    # if username is found, do x
+    if UserName != []:
+      print("This username is already in the database!")
+      response.status_code = 401
+      return None
+    else:
+      print("Here?/")
+      hashed_password = bcrypt.hashpw(Cred.password.encode('utf8'), bcrypt.gensalt())
+      UserData.insert_one({'username': Cred.username, 'password': hashed_password, 'email': Cred.email})
+      response.status_code = 200
+      return None
+  except:
     response.status_code = 401
     return None
-  else:
-    print("Here?/")
-    hashed_password = bcrypt.hashpw(Cred.password.encode('utf8'), bcrypt.gensalt())
-    UserData.insert_one({'username': Cred.username, 'password': hashed_password, 'email': Cred.email})
-    response.status_code = 200
-    return None
-
   
   #check if username is already taken
 

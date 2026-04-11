@@ -40,6 +40,8 @@ services:
     working_dir:  /usr/app/src
     ports:
       - "8001:8001"
+    environment:
+      - PYTHONPATH=/app
     container_name: F1_Server_2
 
     #command: python3 server.py
