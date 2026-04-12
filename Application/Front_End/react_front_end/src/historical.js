@@ -115,11 +115,9 @@ function Historical() {
               {dataDisplay != undefined && dataDisplay.map((data, index) => (
                       
                         <tr className='rows' key = {index} onClick={ () =>  GetRaceResults([data["Eventid"],data["Raceid"]])}>
-                         
                             <td>{data["round"]}</td>
                             <td>{data["name"]}</td>
                             <td>{data["season"]}</td>
-                         
                         </tr>
                         
                     ))}
@@ -131,6 +129,5 @@ function Historical() {
   </div>         
   )
 }
-
 
 export default Historical

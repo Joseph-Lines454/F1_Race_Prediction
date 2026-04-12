@@ -97,6 +97,7 @@ GetSeasonData.onreadystatechange = function()
     Drivers_Over_Season = Response[0]
     Teams_Over_Season = Response[1]
     console.log(Teams_Over_Season)
+    console.log(Drivers_Over_Season)
     //We need to change the shape of the data, so we need to concatinate it all together
     Drivers_Over_Season = SortDataForGraph(Drivers_Over_Season)
     Teams_Over_Season = SortDataForGraph(Teams_Over_Season)
