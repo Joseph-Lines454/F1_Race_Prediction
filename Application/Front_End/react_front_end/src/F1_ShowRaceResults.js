@@ -21,7 +21,9 @@ function F1_ShowRaceResults() {
     <>
     {data && data.length > 0 && data != null && (
     <div className='MainBody'>
+      <br />
       <h1 className='HistoricalData'>Race Data</h1>
+
         <table className='HistoricalData'>
                 <tbody>
                 <tr>

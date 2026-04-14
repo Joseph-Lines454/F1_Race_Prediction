@@ -38,21 +38,19 @@ function RenderNav() {
 
         <h1>F1 Race Prediction</h1>
         <nav className = "navigationLinks">
-          <Link to="/" className = "individualElem">F1 Prediction</Link>
+          <Link to="/F1_Prediction" className = "individualElem">F1 Prediction</Link>
           <Link to="/F1_DriverStandings" className = "individualElem">F1 Standings</Link>
           <Link to ="/historical" className = "individualElem">Historical</Link>
-          <Link to = "/F1_Live_Timings" className="individualElem">Live Timings</Link>
-          <Link to = "/F1_Live_Timings" className="individualElem">Live Timings</Link>
+          
           
         </nav>
       </div>
       )}
       <Routes>
-        <Route path="/" element={<F1_Prediction />} />
+        
         <Route path="/F1_Prediction" element={<F1_Prediction />} />
         <Route path="/F1_DriverStandings" element={<F1_DriverStandings />} />
         <Route path="/historical" element={<Historical />} />
-        <Route path = "/F1_Live_Timings" element={<F1_Live_Timings />} />
         <Route path = "/F1_ShowRaceResults" element={<F1_ShowRaceResults/>} />
         <Route path = "/LoginUser" element={<LoginUser/>} />
          <Route path = "/RegisterUser" element={<RegisterUser/>} />

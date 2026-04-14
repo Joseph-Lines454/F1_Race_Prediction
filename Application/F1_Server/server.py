@@ -591,7 +591,9 @@ def root():
 @app.get("/TestMLModels")
 def root(request: Request,response: Response):
 
+  print(request.cookies.get("session_cookie"))
   CheckCookiesOut = CheckCookies(request.cookies.get("session_cookie"))
+  print("We made it here!")
   if CheckCookiesOut == True:
     #Get the event data, circuit data then we can map it and pass to the ML server
     #We are going to use the data from china - we need to get qualifying data
@@ -644,6 +646,7 @@ def root(request: Request,response: Response):
     print(data)
     #GetDriverNames(data)
     #print(data)
+    response.status_code = 200
     return GetDriverNames(data)
 
   else:

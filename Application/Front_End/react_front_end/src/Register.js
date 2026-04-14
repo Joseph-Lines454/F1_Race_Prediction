@@ -12,11 +12,9 @@ function RegisterUser() {
   const[usernameInital, username] = useState("Name here");
   const[passwordInital, password] = useState("Password here");
   const[emailInital, email] = useState("Name here");
-  const[phonenumberInital, phonenumber] = useState("Password here");
   let emailChange  = (e) => email(e.target.value);
   let usernameChange  = (e) => username(e.target.value);
   let passwordChange  = (e) => password(e.target.value);
-  let phonenumberChange  = (e) => phonenumber(e.target.value);
   const Register = () => {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -25,7 +23,7 @@ function RegisterUser() {
       {
         console.log(this.responseText + "This is the response issue!")
         //Seasons = JSON.parse(this.responseText)
-        navigate("/");
+        navigate("/F1_Prediction");
       }
     }
   
@@ -53,16 +51,14 @@ function RegisterUser() {
             <br />
             <input type='text' value={passwordInital} onChange={passwordChange}></input>
             <br />
-            <label>Phone Number:</label>
-            <br />
-            <input type='text' value={phonenumberInital} onChange={phonenumberChange}></input>
+           
             <br />
             <br />
-            <button type = "button" id = "buttonstyle" onClick = {() => Register(usernameInital,passwordInital,navigate)}>Register</button>
+            <button type = "button" id = "buttonstyle" style = {{backgroundColor: "#56a595", color: "white", border: "none"}} onClick = {() => Register(usernameInital,passwordInital,navigate)}>Register</button>
             <br />
             <br />
-            <button id = "buttonstyle">
-              <Link to="/LoginUser" class = "LinkStyle">Login Instead?</Link>
+            <button id = "buttonstyle" style = {{backgroundColor: "#009879", color: "white", border: "none"}}>
+              <Link to="/LoginUser" style = {{color: "white"}} class = "LinkStyle">Login Instead?</Link>
             </button>
             
           </form>

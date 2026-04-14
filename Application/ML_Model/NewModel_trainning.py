@@ -56,7 +56,7 @@ class F1_Race_Prediction(nn.Module):
     self.relu1 = nn.Tanh()
     self.Input2 = nn.Linear(136, 136)
     self.relu2 = nn.Tanh()
-    #self.dropout = nn.Dropout(0)
+
     # its because we are returning an output
     self.Input4 = nn.Linear(136,4)
     #Our 4 classes currently are outputed and given a probability via softmax - dim1 makes sure its applied across the class scores.

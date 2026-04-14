@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import './App.css'
 import { useEffect, useState } from 'react';
-import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend,Tooltip, Cell } from 'recharts';
+import { CartesianGrid, Line, LineChart, BarChart, Bar, XAxis, YAxis, Legend,Tooltip, Cell, ResponsiveContainer } from 'recharts';
 import {AssignDriverColours, DriverColoursGraph, SortDataForGraph} from './UnitTestFunc.mjs'
 import { RechartsDevtools} from '@recharts/devtools';
 
@@ -128,7 +128,10 @@ GetSeasonData.send();
     ((Drivers != null) && (Response != null) && (driverNames != undefined)) && (
     <div className = "BkrdWrapper">
       <div className='MainBody'>
-        <h1>Driver Standings</h1>
+        <div className='PredCenter'>
+          <h1>Driver Standings</h1>
+        </div>
+        
         <div className='AlignItems'>
           
           <div className='DriversStandings'>
@@ -160,64 +163,71 @@ GetSeasonData.send();
               </table>
           </div>
           <div className='AlignCharts'>
-            <div>
-                
-                {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
-                <BarChart className='BarChartStyle' layout="vertical" style = {{width: '100%', aspectRatio: 1.618, minHeight: 800,maxWidth: 800}} responsive data={Drivers} margin={{left: 150, bottom: 60, top: 60, right: 150}}>
-                  <text y = {30} x = {400} dominantBaseline="central">Driver Points</text>
-                  <YAxis type="category" dataKey="name" interval={0} angle={-0}  tick={({ x, y, payload }) => (
-        <text x={x} y={y} textAnchor="end" dominantBaseline="middle">
-          {payload.value}
-        </text>
-      )} label = {{value: "Driver Name", position: "left", offset: 100, angle: -90}} />
-                  <XAxis dataKey="points" type="number" angle={-0} label = {{value: "Points", position: "bottom", offset: 20}} />
-                  
-                  <Bar dataKey = "points">
-                    <Tooltip trigger="item" />
-                  {Object.values(Drivers).map((value,index) => (
-                    <Cell key = {index} fill = {value.colour} />
-                  ))}
-                  </Bar>
-                  
-                  <RechartsDevtools />
-                </BarChart>
+            <div style={{width: "100%", height: "100%"}}>
+                <ResponsiveContainer width="100%" aspect={1.618}>
+                  {/*Is there any way to get colours in there, also want it to be aligned with drivers standings*/}
+                  <BarChart className='BarChartStyle' layout="vertical" responsive data={Drivers} margin={{left: 150, bottom: 60, top: 60, right: 150}}>
+                    <text y = {30} x = "50%" textAnchor='middle' dominantBaseline="middle">Driver Points</text>
+                    <YAxis type="category" dataKey="name" interval={0} angle={-0}  tick={({ x, y, payload }) => (
+                    <text x={x} y={y} textAnchor="end" dominantBaseline="middle">
+                      {payload.value}
+                    </text>
+                    )} 
+                    label = {{value: "Driver Name", position: "left", offset: 100, angle: -90}} />
+                    <XAxis dataKey="points" type="number" angle={-0} label = {{value: "Points", position: "bottom", offset: 20}} />
+                    
+                    <Bar dataKey = "points">
+                      <Tooltip trigger="item" />
+                    {Object.values(Drivers).map((value,index) => (
+                      <Cell key = {index} fill = {value.colour} />
+                    ))}
+                    </Bar>
+                    
+                    <RechartsDevtools />
+                  </BarChart>
+                </ResponsiveContainer>
             </div>
-            <div>
-                <LineChart className='BarChartStyle'
-                  style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
-                  responsive
-                  data={Drivers_Over_Season}
-                  margin={{
-                    top: 40,
-                    right: 40,
-                    left: 40,
-                    bottom: 40,
-                  }}
-                >
-                  <text y = {30} x = {350} dominantBaseline="central">Drivers Points Progression over season</text>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
-                  <Legend verticalAlign= "bottom" align="left"  layout = "horizontal" wrapperStyle = {{height: '120px',fontSize: '12px',width: '2500px',  display: 'flex', alignItems: 'center', paddingTop: '40px'}} />
-                  <XAxis dataKey="timestamp" label = {{value: "Date", position: "bottom", offset: 20}} angle={0}/>
-                  <YAxis label = {{value: "Drivers", position: "left", offset: 20, angle: -90}} />
-                  <Tooltip />
-                  
-                  {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
-                    <Line
-                      key={driver}
-                      type="monotone"
-                      dataKey={driver}
-                      stroke = {DriverColoursGraph[driver]}
-                    />
-                  ))}
-                  
-                <RechartsDevtools />
-              </LineChart>
+            <div style={{width: "100%", height: "100%"}}>
+                <ResponsiveContainer width="100%" aspect={1.618}>
+                  <LineChart className='BarChartStyle'
+                    
+                    responsive
+                    data={Drivers_Over_Season}
+                    margin={{
+                      top: 40,
+                      right: 40,
+                      left: 40,
+                      bottom: 40,
+                    }}
+                  >
+                    <text y = {30} x = "50%" textAnchor='middle' dominantBaseline="middle">Drivers Points Progression over season</text>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                    <Legend verticalAlign= "bottom" align="left"  layout = "horizontal" wrapperStyle = {{height: '120px',fontSize: '12px',width: '2500px',  display: 'flex', alignItems: 'center', paddingTop: '40px'}} />
+                    <XAxis dataKey="timestamp" label = {{value: "Date", position: "bottom", offset: 20}} angle={0}/>
+                    <YAxis label = {{value: "Drivers", position: "left", offset: 20, angle: -90}} />
+                    <Tooltip />
+                    
+                    {Object.keys(Drivers_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+                      <Line
+                        key={driver}
+                        type="monotone"
+                        dataKey={driver}
+                        stroke = {DriverColoursGraph[driver]}
+                      />
+                    ))}
+                    
+                  <RechartsDevtools />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
           
         <div>
-          <h1>Team Standings</h1>
+          <div className='PredCenter'>
+            <h1>Team Standings</h1>
+          </div>
+          
           <div className='AlignItems'>
           <div className='DriversStandings'>
         
@@ -247,10 +257,11 @@ GetSeasonData.send();
             </table>
           </div>
           <div className='AlignCharts'>
-            <div>
-              <BarChart className='BarChartStyle' style = {{width: '100%', aspectRatio: 1.618, maxWidth: 600}} responsive data={Teams} margin={{bottom: 80,left: 80, top: 80, right: 80}}>
-                 <text y = {30} x = {250} dominantBaseline="central">Teams Points</text>
-                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" label = {{value: "Teams", position: "bottom", offset: 20}} />
+            <div style={{width: "100%", height: "100%"}}>
+              <ResponsiveContainer width="100%" aspect={1.618}>
+              <BarChart className='BarChartStyle' responsive data={Teams} margin={{bottom: 120,left: 80, top: 120, right: 80}}>
+                 <text y = {30} x = "50%" textAnchor='middle' dominantBaseline="middle">Teams Points</text>
+                <XAxis dataKey="name" interval={0} angle={-45} textAnchor="end" label = {{value: "Teams", position: "bottom", offset: 80}} />
                 <YAxis dataKey="points" label = {{value: "Points Total", position: "left", offset: 30, angle: -90}} />
                 <Tooltip trigger="item" />
                 <Bar dataKey = "points" >
@@ -260,40 +271,43 @@ GetSeasonData.send();
                   </Bar>
                 <RechartsDevtools />
               </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div>
-              <LineChart className='BarChartStyle'
-                  style={{ width: '100%', height: '100%', aspectRatio: 1.618 }}
-                  responsive
-                  data={Teams_Over_Season}
-                  margin={{
-                    top: 80,
-                    right: 40,
-                    left: 40,
-                    bottom: 40,
-                  }}
-                >
-                  <text y = {30} x = {350} dominantBaseline="central">Teams Points Progression over season</text>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
-                  
-                  <XAxis label = {{value: "Date", position: "bottom", offset: 0, angle: 0}} dataKey="timestamp" angle={0}/>
-                  <YAxis label = {{value: "Points", position: "left", offset: 0, angle: -90}}/>
-                  <Legend verticalAlign= "middle" align="left"  layout = "vertical" wrapperStyle = {{height: '400px',fontSize: '12px',width: '100px',  display: 'flex', alignItems: 'center'}} />
-                  <Tooltip />
-                  {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
+            <div style={{width: "100%", height: "100%"}}>
+                <ResponsiveContainer width="100%" aspect={1.618}>
+                <LineChart className='BarChartStyle'
                     
-                    <Line
-                      key={driver}
-                      type="monotone"
-                      dataKey={driver}
-                      stroke = {TeamColours[driver]}
+                    responsive
+                    data={Teams_Over_Season}
+                    margin={{
+                      top: 80,
+                      right: 40,
+                      left: 40,
+                      bottom: 40,
+                    }}
+                  >
+                    <text y = {30} x = "50%" textAnchor='middle' dominantBaseline="middle">Teams Points Progression over season</text>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
+                    
+                    <XAxis label = {{value: "Date", position: "bottom", offset: 0, angle: 0}} dataKey="timestamp" angle={0}/>
+                    <YAxis label = {{value: "Points", position: "left", offset: 0, angle: -90}}/>
+                    <Legend  verticalAlign= "bottom" align="left"  layout = "horizontal" wrapperStyle = {{height: '120px',fontSize: '12px',width: '2000px',  display: 'flex', alignItems: 'center', paddingTop: '40px'}}/>
+                    <Tooltip />
+                    {Object.keys(Teams_Over_Season[0]).filter(k => k != "timestamp" ).map(driver => (
                       
-                    />
+                      <Line
+                        key={driver}
+                        type="monotone"
+                        dataKey={driver}
+                        stroke = {TeamColours[driver]}
+                        
+                      />
+                      
+                    ))}
                     
-                  ))}
-                  
-                <RechartsDevtools />
-              </LineChart>
+                  <RechartsDevtools />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

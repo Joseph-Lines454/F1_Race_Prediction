@@ -21,10 +21,11 @@
   border-radius: 25px;
   padding-left: 10px;
   padding-right: 10px;
-  background-color: rgb(73, 183, 168);
+  background-color: #009879;
+  color: #ffffff;
   display: flex;
   margin: auto;
-  width: 100%;
+  width: 50%;
 }
 .navigationLinks {
   display: flex;
@@ -32,6 +33,7 @@
   padding-left: 5%;
   text-decoration: none;
   margin: auto;
+  
 }
 
 .BodyCenter {
@@ -126,11 +128,11 @@ ul
   
 }
 .individualElem {
-  background-color:  rgb(73, 183, 168);
+  background-color: #009879;
   padding: 14px 25px;
   text-align: center;
   text-decoration: none;
-  color: black;
+  color: #ffffff;
 }
 
 .BarChartStyle {
@@ -156,19 +158,27 @@ ul
   
 }
 
-h1 {
+.PredCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .ButtonDis {
-  background-color: #04AA6D;
+  background-color: #009879;
   color: white;
   padding: 16px;
   font-size: 16px;
   border: none;
 }
 
+
 .dropdown {
   
+  display: inline-block;
+}
+
+.predButton {
   display: inline-block;
 }
 
@@ -198,6 +208,11 @@ h1 {
   padding-top: 20px;
   
 }
+.SearchButton {
+  background-color: #2abea0;
+  color: white;
+  border: none;
+}
 
 .SearchBar {
   display: flex;
@@ -224,8 +239,6 @@ h1 {
   justify-content: center;
   align-items: center;
   height: 100vh;
- 
-
 }
 
 .textForm {

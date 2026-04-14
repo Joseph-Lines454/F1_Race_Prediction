@@ -22,7 +22,7 @@ function LoginUser() {
     {
       console.log(this.responseText + "This is the response issue!")
       //Seasons = JSON.parse(this.responseText)
-       navigation("/");
+       navigation("/F1_Prediction");
     }
     }
   
@@ -92,11 +92,11 @@ function LoginUser() {
             <input type='text' value={passwordInital} onChange={passwordChange}></input>
             <br />
             <br />
-            <button type = "button" id = "buttonstyle" onClick = {() => Login(usernameInital,passwordInital)}>Login</button>
+            <button style = {{backgroundColor: "#56a595", color: "white", border: "none"}} type = "button" id = "buttonstyle" onClick = {() => Login(usernameInital,passwordInital)}>Login</button>
             <br />
             <br />
-            <button id = "buttonstyle">
-              <Link to="/RegisterUser" class = "LinkStyle" >Register Instead?</Link>
+            <button id = "buttonstyle" style = {{backgroundColor: "#009879", color: "white", border: "none"}}>
+              <Link to="/RegisterUser" className = "LinkStyle" style = {{color: "white"}}  >Register Instead?</Link>
             </button>
             
           </form>

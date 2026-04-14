@@ -16,6 +16,7 @@ function F1_Prediction() {
     }
   }
   var GetMLData = new XMLHttpRequest();
+  GetMLData.withCredentials = true;
   GetMLData.onreadystatechange = function()
   {
     if (this.readyState == 4 && this.status == 200)
@@ -31,20 +32,25 @@ function F1_Prediction() {
 
   //Test ML Models, Get Data From China and send that Data to the ML Models
   const TestMLModels = () => {
-    GetMLData.open("GET","http://127.0.0.1:8001/TestMLModels",true)
+    GetMLData.open("GET","http://localhost:8001/TestMLModels",true)
     GetMLData.send();
   }
   
   return (
     <div>
-      <h1>F1 Race Prediction - JapaneseGP</h1>
-      <div className='MainBody'>
       
-        <div className="dropdown">
-          <button onClick={() => TestMLModels()} style={{margin: '20px'}} className="ButtonDis">Test ML Models</button>
-          
-          
+
+      <div className='MainBody'>
+        <div className='PredCenter'>
+          <h1>F1 Race Prediction - JapaneseGP</h1>
         </div>
+        <div className='PredCenter'>
+            <div className="predButton">
+              <button onClick={() => TestMLModels()} style={{margin: '20px'}} className="ButtonDis">Test ML Models</button>
+            </div>
+          </div>
+          
+       
         
         <>
         {dataRecived && dataRecived.length > 0 && (
