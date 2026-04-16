@@ -1,0 +1,4 @@
+scikit-learn 
+torch 
+numpy==2.4.3 
+polars

@@ -27,22 +27,38 @@ class QualifyingData(BaseModel):
 class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
-    self.Input1 = nn.Linear(26, 136)
+    self.Input1 = nn.Linear(26, 120)
     self.relu1 = nn.Tanh()
-    self.Input2 = nn.Linear(136, 136)
+    self.Drop1 = nn.Dropout(0.5)
+    self.Input2 = nn.Linear(120, 120)
     self.relu2 = nn.Tanh()
-    #self.dropout = nn.Dropout(0)
+    self.Drop2 = nn.Dropout(0.5)
     # its because we are returning an output
-    self.Input4 = nn.Linear(136,4)
-    #Our 4 classes currently are outputed and given a probability via softmax - dim1 makes sure its applied across the class scores.
+    self.Input4 = nn.Linear(120,120)
+    self.relu3 = nn.Tanh()
+    self.Drop3 = nn.Dropout(0.5)
+    # its because we are returning an output
+    self.Input5 = nn.Linear(120,120)
+    self.relu4 = nn.Tanh()
+    self.Drop4 = nn.Dropout(0.5)
+    # its because we are returning an output
+    self.Input6 = nn.Linear(120,4)
    
 
   def forward(self,x):
     out = self.Input1(x)
     out = self.relu1(out)
+    out = self.Drop1(out)
     out = self.Input2(out)
     out = self.relu2(out)
+    out = self.Drop2(out)
     out = self.Input4(out)
+    out = self.relu3(out)
+    out = self.Drop3(out)
+    out = self.Input5(out)
+    out = self.relu4(out)
+    out = self.Drop4(out)
+    out = self.Input6(out)
     #out = self.activitation(out)
     #return torch.argmax(out, dim=1)
     return out
@@ -212,7 +228,7 @@ def DataPrepANDRunModel(QualiData):
   #y = GetData.select(['race_f']).to_numpy()
   #Might not need this as this is because we dont know these values.
   
-  x = MyList.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
+  x = MyList.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
 
   #For now lets replicate example with four classes instead of 20
 
@@ -230,19 +246,7 @@ def DataPrepANDRunModel(QualiData):
 
 
 
-  #Embedding our RaceID
-  embedding = nn.Embedding(num_embeddings=race_id, embedding_dim=1)
-  embed = embedding(RaceID).squeeze(1)
 
-  x = torch.cat((x, embed), dim=1)
-
-  #Embedding our DriverID
-  embedding = nn.Embedding(num_embeddings=   driver_number, embedding_dim=1)
-  #input shape from numpy is [5810,1] so with embedding_dim=1 makes it [5810,1,1]
-  embed = embedding(DriverID).squeeze(1)
-
-  #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
-  x = torch.cat((x, embed), dim=1)
 
   #Now we need these in seperate tensors
 
