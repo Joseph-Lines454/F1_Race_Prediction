@@ -32,7 +32,9 @@ services:
     #  - "82:82"
     #command: sh -c "chmod +x run.sh && ./run.sh"
     #container_name: Back_End_test
+    
     build:
+      
       context: .
       dockerfile: F1_Server/Dockerfile
     volumes:
@@ -42,22 +44,23 @@ services:
       - "8001:8001"
     environment:
       - PYTHONPATH=/app
+      - MONGO_URL=mongodb://adminUser:NewPassSecure33~@13.63.137.172:27017/Drivers?authSource=admin
     container_name: F1_Server_2
 
     #command: python3 server.py
 
 
-  database:
-    image: mongo:7.0.3
-    ports:
-      - 83:27017
-    volumes:
-      - ./dbdata:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: username
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_URL: mongodb://username:password@database:27017/users?authSource=admin
-    container_name: Database_2
+  #database:
+  #  image: mongo:7.0.3
+  #  ports:
+  #    - 83:27017
+  #  volumes:
+  #    - ./dbdata:/data/db
+  #  environment:
+  #    MONGO_INITDB_ROOT_USERNAME: username
+  #    MONGO_INITDB_ROOT_PASSWORD: password
+  #    MONGO_URL: mongodb://username:password@database:27017/users?authSource=admin
+  #  container_name: Database_2
   ml-service:
     build:
       context: .

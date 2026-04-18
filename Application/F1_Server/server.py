@@ -20,7 +20,7 @@ import aiohttp
 import os
 import bcrypt
 import uuid
-
+import os
 #CONNECTION MANAGER TO ALLOW FOR OUR WEBSOCEKTS TO BE USED
 
 app = FastAPI()
@@ -125,7 +125,7 @@ headers = {
 Year = date.today().year
 
 #clientDatabase = MongoClient("mongodb://username:password@database:27017/Drivers?authSource=admin")
-clientDatabase = MongoClient("mongodb://adminUser:NewPassSecure33~@13.63.137.172:27017/Drivers?authSource=admin")
+clientDatabase = MongoClient(os.getenv("MONGO_URL"))
 newdatabase = clientDatabase["f1db"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
 Races = newdatabase['Races']

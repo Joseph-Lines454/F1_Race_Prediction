@@ -3,7 +3,7 @@ import './App.css';
 import io from 'socket.io-client';
 import { useEffect, useState } from 'react';
 import {BrowserRouter, Routes, Route, Link,useNavigate} from 'react-router-dom'
-import {CheckReg} from './Login_and_Register_functions.js';
+
 
 
 

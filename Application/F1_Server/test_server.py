@@ -3,9 +3,10 @@ from server import app
 from fastapi.testclient import TestClient
 from pymongo import MongoClient
 from server import CheckCookies
+import os
 client = TestClient(app)
-
-clientDatabase = MongoClient("mongodb://adminUser:NewPassSecure33~@13.63.137.172:27017/Drivers?authSource=admin")
+#Testing is done on a test database
+clientDatabase = MongoClient(os.getenv("MONGO_URL"))
 newdatabase = clientDatabase["f1db"]
 Driver_Lap_Times = newdatabase["Driver_Lap_Times"]
 Races = newdatabase['Races']

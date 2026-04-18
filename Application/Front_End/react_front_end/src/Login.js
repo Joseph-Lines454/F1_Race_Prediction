@@ -2,7 +2,7 @@
 import './App.css';
 import io from 'socket.io-client';
 import { useEffect, useState } from 'react';
-import {CheckIfLoginValid, CheckCookies} from './Login_and_Register_functions.js'
+
 import {BrowserRouter, Routes, Route, Link, useNavigate} from 'react-router-dom'
 
 

@@ -22,6 +22,10 @@ export function AssignDriverColours(DriversLen, Drivers){
     DriverColoursGraph[Drivers[i].name] = array[i]
    
   }
+  if (Drivers == undefined)
+  {
+    return null
+  }
   return Drivers
 
 }
@@ -55,6 +59,10 @@ export function SortDataForGraph(Data)
     }
   }
  
+  if (newRows == undefined)
+  {
+    return null
+  }
   return newRows
 }
 export let barcharts = null;
@@ -99,6 +107,10 @@ export function SortData(data)
   DriverBar.sort(function(a,b){
       return b.points - a.points
     })
+  if (DriverBar == undefined)
+  {
+    return null
+  }
   return DriverBar
   }
   catch(error){

@@ -9,6 +9,22 @@ jobs:
   build:
     
     runs-on: ubuntu-latest
+    env:
+      MONGO_URL: mongodb://localhost:27017/Drivers
+    #Getting an instance of the database working for testing
+    services:
+      mongodb:
+        image: mongo:7.0.3
+        ports:
+          - 27017:27017
+          #db.runCommand checks the database is up and responsive
+          #options delays jobs allows for it to wait for database so
+          #tests can actually connect to database
+        options: >-
+          --health-cmd="mongosh --eval 'db.runCommand({ping : 1});'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v3
         
