@@ -22,7 +22,7 @@ jobs:
       - name: Back End Tests
         working-directory: Application/Front_End/react_front_end
         
-        run: npm install && npm ci && npm test -- --exit
+        run: npm install && npm ci && npm test -- --watchAll=false
         timeout-minutes: 3
 
 
