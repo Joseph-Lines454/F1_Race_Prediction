@@ -28,7 +28,7 @@ def userdel():
 
 @pytest.fixture(scope = "session", autouse=True)
 def insertUser():
-  hashed_password = bcrypt.hashpw('usernameIn', bcrypt.gensalt())
+  hashed_password = bcrypt.hashpw('usernameIn'.encode("utf-8"), bcrypt.gensalt())
   UserData.insert_one({'username': 'usernameIn', 'password': hashed_password, 'email': 'randomEmail'})
   yield
   UserData.delete_one({'username': 'usernameIn', "password": hashed_password})
