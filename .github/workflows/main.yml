@@ -34,7 +34,7 @@ jobs:
 
       - name: Server Tests
         working-directory: Application/F1_Server
-        run: python3 -m pip install --no-cache-dir -r requirements.txt && pytest test_server.py || exit 1
+        run: python3 -m pip install --no-cache-dir -r requirements.txt && pytest test_server.py v --maxfail=1
         timeout-minutes: 3
        
 
