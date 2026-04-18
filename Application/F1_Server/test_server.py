@@ -25,12 +25,18 @@ def userdel():
   yield
   UserData.delete_one({'username': 'usernameTwo'})
 
+@pytest.fixture(scope = "session", autouse=True)
+def insertUser():
+  yield
+  UserData.insert_one({'username': 'usernameIn', "password": 'passwordIn'})
+
+
 
 @pytest.fixture()
 def userCookie():
   response = client.post("/Login", json = {
-    "username": "usernameOne",
-    "password": "usernameOne"})
+    "username": "usernameIn",
+    "password": "usernameIn"})
   
   return response.cookies
   
@@ -44,8 +50,8 @@ def test_RegisterWrong():
 
 def test_LoginCorrect():
   response = client.post("/Login", json = {
-    "username": "usernameOne",
-    "password": "usernameOne"})
+    "username": "usernameIn",
+    "password": "usernameIn"})
   assert response.status_code == 200
 
 def test_LoginWrong():
