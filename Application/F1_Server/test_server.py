@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from pymongo import MongoClient
 from server import CheckCookies
 import os
+import bcrypt
 client = TestClient(app)
 #Testing is done on a test database
 clientDatabase = MongoClient(os.getenv("MONGO_URL"))
@@ -27,9 +28,10 @@ def userdel():
 
 @pytest.fixture(scope = "session", autouse=True)
 def insertUser():
-  UserData.insert_one({'username': 'usernameIn', "password": 'passwordIn'})
+  hashed_password = bcrypt.hashpw('usernameIn', bcrypt.gensalt())
+  UserData.insert_one({'username': 'usernameIn', 'password': hashed_password, 'email': 'randomEmail'})
   yield
-  UserData.delete_one({'username': 'usernameIn', "password": 'passwordIn'})
+  UserData.delete_one({'username': 'usernameIn', "password": hashed_password})
 
 
 
