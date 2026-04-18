@@ -25,6 +25,11 @@ function RegisterUser() {
         //Seasons = JSON.parse(this.responseText)
         navigate("/F1_Prediction");
       }
+      else if(this.readyState == 4 && this.status == 401)
+      {
+        alert(this.responseText)
+      }
+      
     }
   
     xhttp.open("POST","http://127.0.0.1:8001/Register",true)

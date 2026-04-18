@@ -1,0 +1,44 @@
+#First github actions creation
+
+name: Github_test_workflow
+
+on: 'push'
+
+jobs:
+
+  build:
+    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        
+      - name: using node-version 18.20.8
+        uses: actions/setup-node@v3
+        
+        with:
+          node-version: 18.20.8
+      
+      #install ci for clean package-lock install then test the mocha tests in the repo
+      - name: Back End Tests
+        working-directory: Front_End/react_front_end
+        
+        run: npm install && npm ci && npm test -- --exit
+        timeout-minutes: 3
+
+
+      #Tests for Python Server as awell as install of packages
+      - name: python-version '3.14.4'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.14.4'
+
+      - name: Server Tests
+        working-directory: F1_Server/
+        run: python3 -m pip install --no-cache-dir -r requirements.txt && pytest test_server.py || exit 1
+        timeout-minutes: 3
+       
+
+
+
+       
+        

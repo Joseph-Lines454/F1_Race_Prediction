@@ -699,11 +699,11 @@ async def root(Cred: CredentialsLogin, response: Response):
       return "Passwords Match"
     else:
       response.status_code = 401
-      return "Passwords Dont Match!"
+      return "Incorrect Username/Password"
   except Exception as e:
     print(e)
     response.status_code = 401
-    return "Password does not match!"
+    return "Incorrect Username/Password"
 
 
 @app.post("/Register")
@@ -721,15 +721,15 @@ async def root(Cred: Credentials,request: Request,response: Response):
     if UserName != []:
       print("This username is already in the database!")
       response.status_code = 401
-      return None
+      return "This username is already in the database"
     else:
-      print("Here?/")
       hashed_password = bcrypt.hashpw(Cred.password.encode('utf8'), bcrypt.gensalt())
       UserData.insert_one({'username': Cred.username, 'password': hashed_password, 'email': Cred.email})
       response.status_code = 200
-      return None
+      return "Valid login"
   except:
     response.status_code = 401
+    return "This username/email"
     return None
   
   #check if username is already taken

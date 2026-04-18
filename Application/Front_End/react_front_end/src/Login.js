@@ -24,6 +24,10 @@ function LoginUser() {
       //Seasons = JSON.parse(this.responseText)
        navigation("/F1_Prediction");
     }
+    else if(this.readyState == 4 && this.status == 401)
+    {
+      alert(this.responseText)
+    }
     }
   
     xhttp.open("POST","http://localhost:8001/Login",true)
