@@ -157,7 +157,7 @@ def on_connect(client, userdata, flags, rc, properties = None):
     print(f"Failed to connect, return code {rc}")
   
 #AFTER THE RACE HAS FINISHED WE NEED TO BE UPDATING STANDINGS AS WELL AS UPDATING RACE RESULTS - THIS IS IMPERITIVE - Also need to get the ML model running after qualifying
-
+"""
 SessionType = ""
 output_file = "/usr/app/src/race_data.jsonl"
 os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -236,7 +236,7 @@ client.tls_insecure_set(False)
 client.on_connect = on_connect
 client.on_message = on_message
 
-
+"""
 def GetStandings(newData):
   data = []
   teams = []
@@ -440,6 +440,9 @@ class SeasonYearData(BaseModel):
 
 
 @app.on_event("startup")
+async def startup():
+  print("Startup")
+"""
 async def startup_mqtt():
   
   try:
@@ -450,7 +453,7 @@ async def startup_mqtt():
     print("MQTT connection started")
   except Exception as e:
         print("MQTT failed:", e)
-  
+  """
   #responsea = requests.get(f"https://hyprace-api.p.rapidapi.com/timingData", headers=headers)
   #response = responsea.json()
   #if (response["sessionStatus"] != "Ends"):
