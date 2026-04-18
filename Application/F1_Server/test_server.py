@@ -27,8 +27,9 @@ def userdel():
 
 @pytest.fixture(scope = "session", autouse=True)
 def insertUser():
-  yield
   UserData.insert_one({'username': 'usernameIn', "password": 'passwordIn'})
+  yield
+  UserData.delete_one({'username': 'usernameIn', "password": 'passwordIn'})
 
 
 
