@@ -2,16 +2,18 @@ import polars as pl
 import numpy as np
 import torch
 from torch import nn
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.metrics import f1_score
-from fastapi import FastAPI, WebSocket
-from fastapi.middleware.cors import CORSMiddleware
+from sklearn.metrics import classification_report
+from sklearn.utils.class_weight import compute_class_weight
 import requests
 import joblib
 #We still need to do some pre-proccessing to the data - For qualifying data we need to use an arbitary value with out binary indicator flag (Reached Q2 ect)
 #Values also need to be encoded because some are in string formats which ML models do not like
-epochIn = 300
+epochIn = 325
 #Trainning model for our data
+y_true = []
+y_pred = []
 def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val):
   for epoch in range (1, epochs + 1):
     model.train()
@@ -25,11 +27,9 @@ def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val)
 
 
     #print(optimizer.grad.norm())
-    y_train.detach()
     optimizer.step()
-    #Essentily converts outputs to proabilities, then argmax gets the highest one and we get the F1 score.
-    f1_score_a = f1_score(torch.argmax(torch.softmax(x_trained, dim=1), dim=1), y_train, average="micro")
-    print(f1_score_a)
+   
+    
     if epoch % 50 == 0 or epoch == epochIn:
       print("Epoch " + str(epoch) + " Training Loss " + str(loss.item()))
 
@@ -41,33 +41,48 @@ def TrainModel(epochs, optimizer, model, loss_fn, x_train, y_train, x_val,y_val)
       model.eval()
       x_validate = model(x_val)
       #Checking loss on out data
+     
       loss = loss_fn(x_validate,y_val)
       #print The loss if epoch is equal to 50
       if epoch % 50 == 0 or epoch == epochIn:
         print("Epoch " + str(epoch) + " Validation Loss " + str(loss.item()))
 
 
-     
+  model.eval()
+  with torch.no_grad():
+    preds = model(x_val)
+    y_pred = torch.argmax(preds, dim=1).cpu().numpy()
+    y_true = y_val.cpu().numpy()
+
+    print(classification_report(y_true, y_pred))
+    print(f1_score(y_true, y_pred, average="macro"))
 
 class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
-    self.Input1 = nn.Linear(26, 136)
+    self.Input1 = nn.Linear(26, 120)
     self.relu1 = nn.Tanh()
-    self.Input2 = nn.Linear(136, 136)
+    self.Drop1 = nn.Dropout(0.5)
+    self.Input2 = nn.Linear(120, 120)
     self.relu2 = nn.Tanh()
-
+    self.Drop2 = nn.Dropout(0.5)
     # its because we are returning an output
-    self.Input4 = nn.Linear(136,4)
+    self.Input4 = nn.Linear(120,4)
+    # its because we are returning an output
+   
+    
     #Our 4 classes currently are outputed and given a probability via softmax - dim1 makes sure its applied across the class scores.
    
 
   def forward(self,x):
     out = self.Input1(x)
     out = self.relu1(out)
+    out = self.Drop1(out)
     out = self.Input2(out)
     out = self.relu2(out)
+    out = self.Drop2(out)
     out = self.Input4(out)
+    
     #out = self.activitation(out)
     return out
 
@@ -97,33 +112,21 @@ def DataPrepANDRunModel():
   print("Train",Train)
   print("Test",Test)
   y = GetData.select(['race_f']).to_numpy()
-  x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','raceId','driverId','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
+  x = GetData.select(pl.all().exclude(['final_race_pos','Finished_Race','resultId','points','qualifyId', 'date', 'race_f', 'Result', 'Finished Race','race_time_hr'])).to_numpy()
 
   #For now lets replicate example with four classes instead of 20
   y = torch.from_numpy(y)
   x = torch.from_numpy(x)
 
   #------ NEED TO ADD 3 EXTRA DIMENSIONS TO THE TENSOR AND PUSH THESE  -------
-
-  #Embedding our RaceID
-  embedding = nn.Embedding(num_embeddings=5839, embedding_dim=1)
-  #input shape from numpy is [5810,1] so with embedding_dim=1 makes it [5810,1,1]
-  embed = embedding(torch.from_numpy(GetData.select(['raceId']).to_numpy())).squeeze(1)
-
-  #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
-  x = torch.cat((x, embed), dim=1)
-  #Embedding our DriverID
-  embedding = nn.Embedding(num_embeddings=5839, embedding_dim=1)
-  embed = embedding(torch.from_numpy(GetData.select(['driverId']).to_numpy())).squeeze(1)
-
-  #Adds the shape of the tensors together dim=1 is to specify to add as columns not rows
-  x = torch.cat((x, embed), dim=1)
+  
+  
 
   #Now we need these in seperate tensors
 
   #We need to make this dynamic
 
-  scaler = MinMaxScaler()
+  scaler = StandardScaler()
 
   row_split_check_x = torch.split(x,[Train,Test],dim=0)
   test_x, validate_x = row_split_check_x
@@ -132,6 +135,7 @@ def DataPrepANDRunModel():
   test_y, validate_y = row_split_check_y
 
   test_y, validate_y = row_split_check_y
+  
 
   test_x = test_x.to(torch.float32)
   validate_x = validate_x.to(torch.float32)
@@ -154,51 +158,28 @@ def DataPrepANDRunModel():
   validate_x = validate_x.detach()
   #device = torch.accelerator.current_accelerator().type
   #converting our data to tensors from numpy once we have split the data
+  
 
   model = F1_Race_Prediction()
   print(model)
-
+  
   #Need to define our loss functions as well as optimizers - This will change as we will need an appropriate loss function
-  loss_fn = torch.nn.CrossEntropyLoss()
+  loss_fn = torch.nn.CrossEntropyLoss(weight=torch.tensor([1,1,2,2.9]))
 
   #Leaning Rate - size of the steps the optimizer takes
   #Momentum nudges the optimizer in the direction of the strongest gradiant over multiple steps.
   optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+
+  
   #Training and Validating our model
   TrainModel(epochIn,optimizer=optimizer,model=model,loss_fn=loss_fn,x_train=test_x, y_train=test_y,x_val=validate_x, y_val=validate_y)
   #Adding our differnet layers however may change this because we dont really need to do it like that - also sending this to the GPU
   torch.save(model.state_dict(), "model.pth")
   joblib.dump(scaler, "scaler.pkl")
 
+DataPrepANDRunModel()
 
-app = FastAPI()
-
-
-origins = [
-    "http://localhost:3000"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-    )
-
-#Web sever code to get ML model data
-@app.get("/MLModelPerformance")
-async def root():
-
-  #We need to get the qualifying results for the AustralianGP 
-
-
-
-  print("Hello World!!!")
-  DataPrepANDRunModel()
-  
-  return "Hello World!! + We have queried the oher model/webserver correctly!!!"
 
 #Data needs to have some pre-processing done to it
 

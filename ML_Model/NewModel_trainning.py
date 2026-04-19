@@ -10,7 +10,7 @@ import requests
 import joblib
 #We still need to do some pre-proccessing to the data - For qualifying data we need to use an arbitary value with out binary indicator flag (Reached Q2 ect)
 #Values also need to be encoded because some are in string formats which ML models do not like
-epochIn = 200
+epochIn = 325
 #Trainning model for our data
 y_true = []
 y_pred = []
@@ -67,15 +67,9 @@ class F1_Race_Prediction(nn.Module):
     self.relu2 = nn.Tanh()
     self.Drop2 = nn.Dropout(0.5)
     # its because we are returning an output
-    self.Input4 = nn.Linear(120,120)
-    self.relu3 = nn.Tanh()
-    self.Drop3 = nn.Dropout(0.5)
+    self.Input4 = nn.Linear(120,4)
     # its because we are returning an output
-    self.Input5 = nn.Linear(120,120)
-    self.relu4 = nn.Tanh()
-    self.Drop4 = nn.Dropout(0.5)
-    # its because we are returning an output
-    self.Input6 = nn.Linear(120,4)
+   
     
     #Our 4 classes currently are outputed and given a probability via softmax - dim1 makes sure its applied across the class scores.
    
@@ -88,12 +82,7 @@ class F1_Race_Prediction(nn.Module):
     out = self.relu2(out)
     out = self.Drop2(out)
     out = self.Input4(out)
-    out = self.relu3(out)
-    out = self.Drop3(out)
-    out = self.Input5(out)
-    out = self.relu4(out)
-    out = self.Drop4(out)
-    out = self.Input6(out)
+    
     #out = self.activitation(out)
     return out
 

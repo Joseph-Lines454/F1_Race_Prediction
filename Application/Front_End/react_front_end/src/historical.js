@@ -24,17 +24,17 @@ function Historical() {
   const [dataDisplay,dataDisplaySet] = useState(undefined)
   const [SeasonIn,SeasonSet] = useState(null)
   const navigation = useNavigate();
-  const GetSeasonData =  () => {
+  const GetSeasonData =  (season) => {
     //This  is where we make a request to get  that seasons  data to  the client
     console.log(Number(SeasonIn))
 
     if(Season.includes(Number(SeasonIn)) == false)
     {
-      alert("Invalid Season Selection!")
+      alert("Please insert a number from 1950 to 2026")
     }
     else{
-      alert("We got it right!!!")
-      GetHistoricalData()
+      
+      GetHistoricalData(SeasonIn)
     }
 
   }
@@ -100,7 +100,7 @@ function Historical() {
         </div>
         <div className="SearchBar">
           <input  onChange={UpdateText} type = "text" className='Bar' placeholder='Search for Season' />
-          <button onClick={() => GetHistoricalData(SeasonIn)} className='SearchButton'>Search</button>
+          <button onClick={() => GetSeasonData(SeasonIn)} className='SearchButton'>Search</button>
         </div>
     </div>
     <div className='BodyCenter'>

@@ -34,15 +34,8 @@ class F1_Race_Prediction(nn.Module):
     self.relu2 = nn.Tanh()
     self.Drop2 = nn.Dropout(0.5)
     # its because we are returning an output
-    self.Input4 = nn.Linear(120,120)
-    self.relu3 = nn.Tanh()
-    self.Drop3 = nn.Dropout(0.5)
-    # its because we are returning an output
-    self.Input5 = nn.Linear(120,120)
-    self.relu4 = nn.Tanh()
-    self.Drop4 = nn.Dropout(0.5)
-    # its because we are returning an output
-    self.Input6 = nn.Linear(120,4)
+    self.Input4 = nn.Linear(120,4)
+    
    
 
   def forward(self,x):
@@ -53,12 +46,7 @@ class F1_Race_Prediction(nn.Module):
     out = self.relu2(out)
     out = self.Drop2(out)
     out = self.Input4(out)
-    out = self.relu3(out)
-    out = self.Drop3(out)
-    out = self.Input5(out)
-    out = self.relu4(out)
-    out = self.Drop4(out)
-    out = self.Input6(out)
+   
     #out = self.activitation(out)
     #return torch.argmax(out, dim=1)
     return out

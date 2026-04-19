@@ -10,13 +10,6 @@ let Seasons = null;
 let DriverColours = ["#FF5733","#33FF57","#3357FF","#FF33A1","#33fff5","#F5FF33","#FF8C33","#"]
 
 //Might need to use useeffect here...
-let Response = null;
-
-let ValidPrint = false;
-let Teams = undefined;
-let Drivers = undefined;
-let Drivers_Over_Season = undefined;
-let Teams_Over_Season = undefined;
 
 
 let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "orange","haas": "lightgray", "red bull racing": "lightblue","racing bulls" :"darkyellow","alpine": "lightpink","Audi": "silver","Williams": "dark blue","Cadillac" : "black", "aston martin": "darkgreen"}
@@ -30,7 +23,7 @@ let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "oran
 
 
 
-//const websocket = new WebSocket("ws://127.0.0.1:8001/ws")
+//const websocket = new WebSocket("ws://127.0.0.1:8001/ws"
 
 //websocket.addEventListener("open", event => {
 //  websocket.send("Connection established")
@@ -50,64 +43,76 @@ let TeamColours = {"mercedes": "#b2bfb2","ferrari" : "darkred","mclaren" : "oran
 //We need to assign random colours to the drivers in the graphs
 
 
-let driverNames = undefined
+
 function F1_DriverStandings() {
 
 
+const [Drivers_Over_Season,Drivers_Over_SeasonSet] = useState(undefined)
+const [Teams_Over_Season,Teams_Over_SeasonSet] = useState(undefined)
+const [driverNames, driverNamesSet] = useState(undefined)
+const [Response, ResponseSet] = useState(null)
+const [Drivers, DriversSet] = useState(undefined)
+const [Teams, TeamsSet] = useState(undefined)
   useEffect(() => {
-  var xhttp = new XMLHttpRequest();
-  var GetSeasonData = new XMLHttpRequest();
-  GetSeasonData.withCredentials = true;
-  xhttp.withCredentials = true;
-  xhttp.onreadystatechange = function() {
+    console.log("We MADE IT HERE")
+    var xhttp = new XMLHttpRequest();
+    var GetSeasonData = new XMLHttpRequest();
+    GetSeasonData.withCredentials = true;
+    xhttp.withCredentials = true;
+    xhttp.onreadystatechange = function() {
 
-  if (this.readyState == 4 && this.status == 200 && this.responseText != null)
-  {
-    Response = this.responseText
-    Response = JSON.parse(Response)
-    Drivers = Response[0]
-    Teams = Response[1]
+    if (this.readyState == 4 && this.status == 200 && this.responseText != undefined)
+    {
+      let data = JSON.parse(this.responseText)
+      let DriversTemp = [...data[0]]
+      //DriversSet(data[0])
       
-    Drivers.sort(function(a,b){
-      return b.points - a.points
-    })
-    Drivers = AssignDriverColours(Object.keys(Drivers).length, Drivers)
-    console.log("Drivers Colour: " + Drivers[0].colour)
-    ValidPrint = true;
-  }
-  else{
-    Response = null;
-  }
+        
+      DriversTemp.sort(function(a,b){
+        return b.points - a.points
+      })
+      DriversSet(AssignDriverColours(Object.keys(DriversTemp).length, DriversTemp))
+      TeamsSet(data[1])
+      
+      
+    }
     
+      
 
 
-}
+  }
 
 
-xhttp.open("GET","http://localhost:8001/F1_Statistics",true)
+  xhttp.open("GET","http://localhost:8001/F1_Statistics",true)
 
-xhttp.send();
+  xhttp.send();
 
-GetSeasonData.onreadystatechange = function()
-{
-  if (this.readyState == 4 && this.status == 200)
+  GetSeasonData.onreadystatechange = function()
   {
+    if (this.readyState == 4 && this.status == 200 && this.responseText != undefined)
+    {
+      let data = JSON.parse(this.responseText)
     
-    Response = JSON.parse(this.responseText)
-    Drivers_Over_Season = Response[0]
-    Teams_Over_Season = Response[1]
-    console.log(Teams_Over_Season)
-    console.log(Drivers_Over_Season)
-    //We need to change the shape of the data, so we need to concatinate it all together
-    Drivers_Over_Season = SortDataForGraph(Drivers_Over_Season)
-    Teams_Over_Season = SortDataForGraph(Teams_Over_Season)
+
+      //Drivers_Over_SeasonSet(data[0])
+      //Teams_Over_SeasonSet(data[1])
+
+      let Driver_Temp2 = [...data[0]]
+      let Team_Temp2 = [...data[1]]
+     
+      //We need to change the shape of the data, so we need to concatinate it all together
+
+      let driverGraphData = SortDataForGraph(Driver_Temp2)
+      let teamGraphData = SortDataForGraph(Team_Temp2)
+
+      Drivers_Over_SeasonSet(driverGraphData)
+      Teams_Over_SeasonSet(teamGraphData)
+      driverNamesSet(Object.keys(driverGraphData[0]).filter(k => k !== "timestamp"))
+    }
+   
   }
-  else{
-    Response = null;
-  }
-}
-GetSeasonData.open("GET","http://localhost:8001/F1_Standings_Over_Time",true)
-GetSeasonData.send();
+  GetSeasonData.open("GET","http://localhost:8001/F1_Standings_Over_Time",true)
+  GetSeasonData.send();
 
 
 
@@ -119,13 +124,13 @@ GetSeasonData.send();
 
 
   //websocket.send("HelloooooAhhhhh")
-  if (Response != null)
-  {
-    driverNames = Object.keys(Drivers_Over_Season[0]).filter(k => k !== "timestamp");
-  }
+  //if (Response != null)
+  //{
+  //  driverNames = Object.keys(Drivers_Over_Season[0]).filter(k => k !== "timestamp");
+  //}
   
   return (
-    ((Drivers != null) && (Response != null) && (driverNames != undefined)) && (
+    ((Drivers != null) && (driverNames != undefined)) && (
     <div className = "BkrdWrapper">
       <div className='MainBody'>
         <div className='PredCenter'>

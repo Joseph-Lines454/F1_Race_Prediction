@@ -47,7 +47,7 @@ function RenderNav() {
       </div>
       )}
       <Routes>
-        
+        <Route path = "/" element={<LoginUser/>} />
         <Route path="/F1_Prediction" element={<F1_Prediction />} />
         <Route path="/F1_DriverStandings" element={<F1_DriverStandings />} />
         <Route path="/historical" element={<Historical />} />
