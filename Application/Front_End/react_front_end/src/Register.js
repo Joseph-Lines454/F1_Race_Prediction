@@ -54,7 +54,7 @@ function RegisterUser() {
             <br />
             <label>Password:</label>
             <br />
-            <input type='text' value={passwordInital} onChange={passwordChange}></input>
+            <input type='password' value={passwordInital} onChange={passwordChange}></input>
             <br />
            
             <br />

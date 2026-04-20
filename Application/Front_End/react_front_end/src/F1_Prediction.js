@@ -22,7 +22,22 @@ function F1_Prediction() {
     if (this.readyState == 4 && this.status == 200)
     {
       console.log(this.responseText)
-      dataSet(JSON.parse(this.responseText))
+
+      let ComparePos = (a,b) => {
+        if (a.DriverPosition < b.DriverPosition)
+        {
+          return -1;
+        }
+        if (a.DriverPosition > b.DriverPosition)
+        {
+          return 1;
+        }
+        return 0;
+      }
+
+      let dataSort = JSON.parse(this.responseText)
+      dataSort.sort(ComparePos)
+      dataSet(dataSort)
       
     }
   }

@@ -93,7 +93,7 @@ function LoginUser() {
             <br />
             <label>Password:</label>
             <br />
-            <input type='text' value={passwordInital} onChange={passwordChange}></input>
+            <input type='password' value={passwordInital} onChange={passwordChange}></input>
             <br />
             <br />
             <button style = {{backgroundColor: "#56a595", color: "white", border: "none"}} type = "button" id = "buttonstyle" onClick = {() => Login(usernameInital,passwordInital)}>Login</button>

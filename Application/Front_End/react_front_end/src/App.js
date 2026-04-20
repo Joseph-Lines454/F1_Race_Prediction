@@ -25,7 +25,7 @@ function App(){
 function RenderNav() {
   console.log("Here in app!")
   const location = useLocation();
-  const hidePaths = ["/LoginUser","/RegisterUser"];
+  const hidePaths = ["/LoginUser","/RegisterUser","/"];
   const showNav = !hidePaths.includes(location.pathname)
   return (
 
