@@ -61,10 +61,10 @@ class F1_Race_Prediction(nn.Module):
   def __init__(self):
     super(F1_Race_Prediction, self).__init__()
     self.Input1 = nn.Linear(26, 120)
-    self.relu1 = nn.Tanh()
+    self.Tanh = nn.Tanh()
     self.Drop1 = nn.Dropout(0.5)
     self.Input2 = nn.Linear(120, 120)
-    self.relu2 = nn.Tanh()
+    self.Tanh = nn.Tanh()
     self.Drop2 = nn.Dropout(0.5)
     # its because we are returning an output
     self.Input4 = nn.Linear(120,4)
@@ -76,10 +76,10 @@ class F1_Race_Prediction(nn.Module):
 
   def forward(self,x):
     out = self.Input1(x)
-    out = self.relu1(out)
+    out = self.Tanh(out)
     out = self.Drop1(out)
     out = self.Input2(out)
-    out = self.relu2(out)
+    out = self.Tanh(out)
     out = self.Drop2(out)
     out = self.Input4(out)
     
