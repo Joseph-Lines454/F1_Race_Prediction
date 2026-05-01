@@ -101,7 +101,7 @@ def DataPrepANDRunModel():
   classifier = RandomForestClassifier(n_estimators=300,
                                  
                                  random_state=150,
-                                 max_features=20 )
+                                 max_features=22, max_depth=10 )
   classifier.fit(test_x, test_y)
   y_pred = classifier.predict(validate_x)
   #53.68%

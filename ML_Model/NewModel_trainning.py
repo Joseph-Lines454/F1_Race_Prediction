@@ -102,7 +102,17 @@ def DataPrepANDRunModel():
   GetData = GetData.filter(pl.col('final_race_pos') != 0)
   GetData = GetData.with_columns(pl.when(pl.col("final_race_pos") <= 3).then(0).when((pl.col("final_race_pos") > 3) & (pl.col("final_race_pos") <= 10) ).then(1).when((pl.col("final_race_pos") > 10) & (pl.col("final_race_pos") <= 15)).then(2).when((pl.col("final_race_pos") > 15) & (pl.col("final_race_pos") <= 24 )).then(3).alias('race_f'))
 
-
+  print(GetData.select(
+    (pl.col("final_race_pos") == 1).sum()
+))
+  print("//////")
+  print(GetData.filter(pl.col("race_f") == 0).height)
+  print("//////")
+  print(GetData.filter(pl.col("race_f") == 1).height)
+  print("//////")
+  print(GetData.filter(pl.col("race_f") == 2).height)
+  print("//////")
+  print(GetData.filter(pl.col("race_f") == 3).height)
   #GetData = GetData.filter(pl.col('final_race_pos') <= 20)
   print(len(GetData))
   dataLen = len(GetData)
