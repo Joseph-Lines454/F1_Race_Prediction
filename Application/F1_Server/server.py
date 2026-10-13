@@ -140,7 +140,6 @@ UserData = newdatabase["loginInfo"]
 def on_connect(client, userdata, flags, rc, properties = None):
   print("we are here!!")
   if rc == 0:
-        #we can change all of this shit
         print("Connected to OpenF1 MQTT broker")
         #client.subscribe("v1/location")
         #client.subscribe("v1/laps")
